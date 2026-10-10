@@ -1,0 +1,6 @@
+MiniWorld Sprites by Shade
+Source: https://opengameart.org/content/miniworld-sprites
+License: CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Used for Shepard Sheep-domain building sprites.

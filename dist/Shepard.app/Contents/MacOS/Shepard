@@ -1,0 +1,5 @@
+#!/bin/zsh
+APP_DIR="${0:A:h}"
+PROJECT_DIR="${APP_DIR:h:h:h:h}"
+cd "$PROJECT_DIR" || exit 1
+exec /usr/bin/env python3 -m shepard desktop

@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "ollama": {
+    "base_url": "http://127.0.0.1:11434",
+    "timeout_seconds": 300
+  },
+  "database": "data/labyrinth.db",
+  "owner_profile": "data/owner/resume.txt",
+  "shepard": {
+    "id": "shepard",
+    "name": "Shepard",
+    "model": "shepard:latest",
+    "role": "Plan goals, delegate work, enforce policy, review results, and report to the owner.",
+    "persona": "Calm, strategic, candid, and protective of the owner's interests."
+  },
+  "sheep": [
+    {
+      "id": "scout",
+      "name": "Scout",
+      "model": "qwen3:8b",
+      "role": "Find internship opportunities, compare them with the owner's resume, gather evidence, and rank the strongest matches.",
+      "persona": "Curious, resourceful, skeptical of weak evidence, and concise.",
+      "capabilities": [
+        "local.read",
+        "profile.resume.read",
+        "research.propose"
+      ]
+    },
+    {
+      "id": "scribe",
+      "name": "Scribe",
+      "model": "qwen3:8b",
+      "role": "Draft resumes, cover letters, professional messages, and project documents.",
+      "persona": "Polished, persuasive, precise, and faithful to the supplied facts.",
+      "capabilities": [
+        "local.read",
+        "artifact.draft"
+      ]
+    },
+    {
+      "id": "builder",
+      "name": "Builder",
+      "model": "qwen3:8b",
+      "role": "Turn plans into concrete project artifacts, specifications, and implementation steps.",
+      "persona": "Practical, systematic, technically minded, and outcome-focused.",
+      "capabilities": [
+        "local.read",
+        "artifact.draft"
+      ]
+    },
+    {
+      "id": "reviewer",
+      "name": "Reviewer",
+      "model": "qwen3:8b",
+      "role": "Check work for correctness, gaps, risk, consistency, and unsupported claims.",
+      "persona": "Exacting but constructive, independent, and transparent about uncertainty.",
+      "capabilities": [
+        "local.read",
+        "artifact.review"
+      ]
+    },
+    {
+      "id": "steward",
+      "name": "Steward",
+      "model": "qwen3:8b",
+      "role": "Track tasks, deadlines, dependencies, and follow-up actions.",
+      "persona": "Organized, dependable, proactive, and calm.",
+      "capabilities": [
+        "local.read",
+        "calendar.propose",
+        "task.manage"
+      ]
+    },
+    {
+      "id": "browser",
+      "name": "Wayfinder",
+      "model": "qwen3:8b",
+      "role": "Handle explicitly shared webpages, propose safe browser navigation, and prepare form actions for owner approval.",
+      "persona": "Careful, methodical, privacy-conscious, and explicit about every browser action.",
+      "capabilities": [
+        "browser.read",
+        "browser.navigate",
+        "browser.submit"
+      ]
+    },
+    {
+      "id": "brandon",
+      "name": "Brandon",
+      "model": "gemini:gemini-3.8-flash",
+      "role": "Gemini specialist who handles research, reasoning, brainstorming, and second opinions for Shepard",
+      "persona": "Analytical, curious, resourceful, concise, and transparent about uncertainty.",
+      "capabilities": [
+        "local.read",
+        "artifact.draft"
+      ]
+    }
+  ],
+  "policy": {
+    "approval_required": [
+      "email.send",
+      "calendar.commit",
+      "application.submit",
+      "file.delete",
+      "purchase.create",
+      "publish.external",
+      "device.control",
+      "browser.navigate",
+      "browser.submit"
+    ],
+    "max_tasks_per_goal": 8,
+    "max_context_characters": 24000
+  }
+}

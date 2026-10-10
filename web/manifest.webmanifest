@@ -1,0 +1,12 @@
+{
+  "name": "Shepard Control Center",
+  "short_name": "Shepard",
+  "description": "Local command center for Shepard and the Labyrinth.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080a11",
+  "theme_color": "#0a0d16",
+  "icons": [
+    {"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}

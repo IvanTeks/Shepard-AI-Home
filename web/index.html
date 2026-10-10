@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080a11">
+  <meta name="description" content="Shepard's living Labyrinth—a private home for your work and flock.">
+  <title>Shepard · The Labyrinth</title>
+  <script src="./file-redirect.js"></script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/styles.css?v=28">
+</head>
+<body>
+  <button id="world-menu-button" class="world-menu-button" type="button" aria-controls="world-menu" aria-expanded="false">
+    <span class="menu-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span>Menu</span>
+  </button>
+  <button id="world-overlay-backdrop" class="world-overlay-backdrop" type="button" aria-label="Close open menu or panel" hidden></button>
+
+  <aside class="rail" aria-label="Primary navigation">
+    <div class="rail-heading">
+    <a class="brand" href="#command" aria-label="Shepard home">
+      <span class="brand-mark" aria-hidden="true"><span></span></span>
+      <span><strong>Shepard</strong><small>Choose where to go</small></span>
+    </a>
+    <button id="world-menu-close" class="icon-button" type="button" aria-label="Close menu">×</button>
+    </div>
+
+    <nav class="nav-list">
+      <button class="nav-link" type="button" data-workspace-panel="command"><span>01</span><b>Ask Shepard</b><small>Start a job with the flock</small></button>
+      <button class="nav-link" type="button" data-workspace-panel="jobs"><span>02</span><b>Jobs</b><small>See work and results</small></button>
+      <button class="nav-link" type="button" data-workspace-panel="sheep"><span>03</span><b>Sheep</b><small>Meet and customize the flock</small></button>
+      <button class="nav-link" type="button" data-workspace-panel="approvals"><span>04</span><b>Approvals</b><small>Review sensitive actions</small></button>
+      <button class="nav-link" type="button" data-workspace-panel="internships"><span>05</span><b>Internships</b><small>Résumé, Scout, and applications</small></button>
+      <button class="nav-link" type="button" data-world-action="chat"><span>06</span><b>Chat</b><small>Talk privately at the roots</small></button>
+      <button class="nav-link" type="button" data-world-action="connections"><span>07</span><b>Connections</b><small>Manage Shepard's bridges</small></button>
+      <button class="nav-link" type="button" data-world-action="alarms"><span>08</span><b>Alarms</b><small>Set reminders and routines</small></button>
+    </nav>
+
+    <div class="labyrinth-mark" aria-hidden="true">
+      <span class="ring ring-one"></span>
+      <span class="ring ring-two"></span>
+      <span class="ring ring-three"></span>
+      <span class="core">S</span>
+    </div>
+
+    <div class="rail-status">
+      <span id="rail-status-dot" class="status-dot checking"></span>
+      <div><strong id="rail-status-label">Checking system</strong><small id="rail-status-copy">Local connection</small></div>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Welcome home</p>
+        <h1 id="workspace-title">The Labyrinth</h1>
+      </div>
+      <div class="top-actions">
+        <div class="mode-switch" role="group" aria-label="Workspace mode">
+          <button class="mode-button active" data-mode="labyrinth" type="button" aria-pressed="true">Labyrinth</button>
+          <button class="mode-button" data-mode="chat" type="button" aria-pressed="false">Chat</button>
+        </div>
+        <span id="clock" class="clock" aria-label="Local time"></span>
+        <button class="ghost-button alarm-button" id="alarms-button" type="button" aria-haspopup="dialog">
+          <span class="alarm-bell" aria-hidden="true">♢</span><span>Alarms</span><strong id="alarm-count" hidden>0</strong>
+        </button>
+        <button class="ghost-button connection-button" id="connections-button" type="button"><span class="connection-pulse"></span>Connections</button>
+        <button class="ghost-button" id="refresh-button" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <div id="mode-labyrinth" class="mode-view active">
+    <section id="command" class="labyrinth-console" aria-labelledby="command-heading">
+      <div class="labyrinth-visual">
+        <div class="labyrinth-atmosphere" aria-hidden="true">
+          <span class="sky-stars"></span>
+          <span class="sky-cloud cloud-one"></span>
+          <span class="sky-cloud cloud-two"></span>
+          <span class="sky-birds"><i></i><i></i><i></i><i></i></span>
+          <span class="sky-owls"><i></i><i></i></span>
+          <span class="weather-fall"></span>
+        </div>
+        <div class="labyrinth-heading">
+          <div><span class="section-number">01 / THE LIVING LABYRINTH</span><h2>Every Sheep has a domain</h2><span class="orbit-hint">Drag to orbit · Scroll to zoom · Double-click to reset</span></div>
+          <div class="labyrinth-heading-actions">
+            <button id="gesture-toggle" class="weather-status gesture-toggle" type="button" aria-pressed="false" title="Turn on private, camera-based hand controls">
+              <span aria-hidden="true">◇</span><span id="gesture-toggle-copy">Hand controls</span>
+            </button>
+            <button id="council-button" class="weather-status" type="button" title="Gather every Sheep for an improvement council"><span>⌂</span><span>Gather council</span></button>
+            <button id="weather-status" class="weather-status" type="button" title="Use current location for live Labyrinth weather"><span id="weather-icon">◐</span><span id="weather-copy">Local sky</span></button>
+          </div>
+        </div>
+        <div id="labyrinth-stage" class="labyrinth-stage" aria-label="Animated circular map of Shepard and the Sheep">
+          <div id="labyrinth-world" class="labyrinth-world">
+          <div class="ambient-glow"></div>
+          <svg class="labyrinth-lines" viewBox="0 0 1000 1000" aria-hidden="true">
+            <circle class="maze-wall wall-outer" cx="500" cy="500" r="454" pathLength="360" />
+            <circle class="maze-wall wall-six" cx="500" cy="500" r="397" pathLength="360" />
+            <circle class="maze-wall wall-five" cx="500" cy="500" r="340" pathLength="360" />
+            <circle class="maze-wall wall-four" cx="500" cy="500" r="283" pathLength="360" />
+            <circle class="maze-wall wall-three" cx="500" cy="500" r="226" pathLength="360" />
+            <circle class="maze-wall wall-two" cx="500" cy="500" r="169" pathLength="360" />
+            <circle class="maze-wall wall-inner" cx="500" cy="500" r="112" pathLength="360" />
+            <path class="maze-buttress" d="M500 46v62M500 165v58M500 280v60M500 396v52M954 500h-62M835 500h-55M722 500h-58M604 500h-52M500 954v-62M500 835v-55M500 722v-58M500 604v-52M46 500h62M165 500h58M280 500h60M396 500h52M178 178l44 44M258 258l42 42M338 338l38 38M822 178l-44 44M742 258l-42 42M662 338l-38 38M822 822l-44-44M742 742l-42-42M662 662l-38-38M178 822l44-44M258 742l42-42M338 662l38-38" />
+            <path class="maze-keyline" d="M102 420h48v-38h46v76h48v-38h42M714 580h42v38h48v-76h46v38h48" />
+          </svg>
+
+          <div id="route-layer" aria-hidden="true"></div>
+          <div id="domain-layer"></div>
+
+          <button class="root-domain" data-domain-id="shepard" aria-label="Zoom into Shepard and open chat">
+            <span class="root-aura"></span>
+            <img src="/assets/shepard-tree.png" alt="Shepard seated at the luminous roots of the central tree">
+            <span class="root-label"><strong>Shepard</strong><small>Tap to enter the roots</small></span>
+          </button>
+          </div>
+          <div class="scene-readout" aria-hidden="true">
+            <span><i></i> Living world</span>
+            <span id="scene-domain-count">0 domains locked</span>
+          </div>
+          <div class="scene-compass" aria-hidden="true"><span>N</span><i></i></div>
+        </div>
+        <aside id="gesture-panel" class="gesture-panel" aria-label="Hand control camera preview" hidden>
+          <div class="gesture-camera">
+            <video id="gesture-video" muted playsinline></video>
+            <canvas id="gesture-overlay" width="224" height="168" aria-hidden="true"></canvas>
+            <span id="gesture-camera-state">Initializing locally…</span>
+          </div>
+          <div class="gesture-instructions">
+            <strong id="gesture-status">Show one hand</strong>
+            <small>Open one hand + move to orbit<br>Open two hands + spread to zoom<br>Close your hand to release</small>
+          </div>
+        </aside>
+        <section id="shepard-focus-panel" class="shepard-focus-panel" aria-labelledby="focus-heading" hidden>
+          <div class="focus-heading">
+            <div><span class="section-number">AT THE ROOTS</span><h2 id="focus-heading">Ask Shepard</h2><small id="focus-assistants">The flock is listening</small></div>
+            <button id="leave-roots-button" class="workspace-return-button focus-return-button" type="button" aria-label="Back to the Labyrinth"><span aria-hidden="true">←</span><span>Labyrinth</span></button>
+          </div>
+          <div id="focus-chat-messages" class="focus-chat-messages" aria-live="polite"></div>
+          <form id="focus-chat-form" class="focus-chat-form">
+            <label class="sr-only" for="focus-chat-input">Ask Shepard at the roots</label>
+            <textarea id="focus-chat-input" rows="2" maxlength="12000" placeholder="Ask Shepard—or paste a webpage URL…" required></textarea>
+            <button id="focus-chat-send" class="primary-button" type="submit" aria-label="Send to Shepard">Send <span aria-hidden="true">↗</span></button>
+          </form>
+        </section>
+      </div>
+    </section>
+
+      <div class="command-console">
+        <span class="section-number">A NOTE FOR SHEPARD</span>
+        <h2 id="command-heading">What are we working on?</h2>
+        <p>Leave the thought here. Shepard will gather the right Sheep and bring their work back to the tree.</p>
+        <form id="goal-form" class="goal-form">
+          <label class="sr-only" for="goal-input">Goal for Shepard</label>
+          <textarea id="goal-input" name="goal" rows="6" maxlength="10000" placeholder="Find software internships that match my background and prepare the application materials…" required></textarea>
+          <div class="goal-footer">
+            <span><kbd>⌘</kbd> <kbd>Enter</kbd></span>
+            <button id="dispatch-button" class="primary-button" type="submit">
+              <span>Ask the flock</span><span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </form>
+        <div class="console-status"><span class="status-dot"></span><span id="console-status-copy">All domains are ready</span></div>
+      </div>
+
+    <section class="metrics" aria-label="Labyrinth summary">
+      <article><span>Active</span><strong id="metric-active">0</strong><small>jobs moving now</small></article>
+      <article><span>Complete</span><strong id="metric-complete">0</strong><small>recorded outcomes</small></article>
+      <article><span>Sheep</span><strong id="metric-agents">0</strong><small>specialists available</small></article>
+      <article class="metric-alert"><span>Approvals</span><strong id="metric-approvals">0</strong><small>waiting for you</small></article>
+    </section>
+
+    <section id="internships" class="panel internships-panel" aria-labelledby="internships-heading">
+      <div class="panel-heading internship-heading">
+        <div><span class="section-number">05 / CAREER GARDEN</span><h2 id="internships-heading">From job post to application plan</h2></div>
+        <div class="internship-stats" aria-label="Internship pipeline summary">
+          <span><strong id="internship-stat-total">0</strong> tracked</span>
+          <span><strong id="internship-stat-ready">0</strong> reviewed</span>
+          <span><strong id="internship-stat-applied">0</strong> applied</span>
+        </div>
+      </div>
+
+      <div class="internship-automation-grid">
+        <section class="career-tool-card resume-desk" aria-labelledby="resume-desk-heading">
+          <div class="career-tool-heading">
+            <div><span class="section-number">YOUR RÉSUMÉ</span><h3 id="resume-desk-heading">Submit, critique, and focus</h3></div>
+            <span id="resume-review-status" class="status-badge saved">Not reviewed</span>
+          </div>
+          <p class="career-tool-copy">Upload a DOCX, TXT, or Markdown résumé. Shepard keeps it on this Mac, critiques it, and turns only grounded skills into a search profile.</p>
+          <form id="resume-upload-form" class="resume-upload-form">
+            <label class="file-picker">Résumé file<input id="resume-file" type="file" accept=".docx,.txt,.md" required></label>
+            <button id="resume-upload-button" class="primary-button" type="submit">Upload &amp; critique</button>
+          </form>
+          <div class="career-tool-meta"><span id="resume-filename">No uploaded résumé</span><button id="resume-review-button" class="text-button" type="button" disabled>Critique again</button></div>
+          <div id="resume-search-profile" class="search-profile" hidden></div>
+          <details id="resume-critique-panel" class="critique-panel" hidden>
+            <summary>Read Shepard's critique</summary>
+            <div id="resume-critique" class="message-body result-markdown"></div>
+          </details>
+        </section>
+
+        <section class="career-tool-card active-scout" aria-labelledby="active-scout-heading">
+          <div class="career-tool-heading">
+            <div><span class="section-number">SCOUT ON THE ROAD</span><h3 id="active-scout-heading">Search while Shepard is open</h3></div>
+            <span id="active-scout-status" class="status-badge saved">Not running</span>
+          </div>
+          <p class="career-tool-copy">Scout checks Remotive and the public SimplifyJobs/Pitt CSC internship registry, ranks matches locally, and saves strong discoveries. It never submits applications.</p>
+          <form id="active-scout-form" class="active-scout-form">
+            <label>Search query<input id="scout-query" maxlength="500" placeholder="e.g. software engineering intern"></label>
+            <label>Location preference <span>optional</span><input id="scout-location" maxlength="200" placeholder="Remote, Buffalo, New York…"></label>
+            <label>Run every<select id="scout-interval"><option value="6">6 hours</option><option value="12">12 hours</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select></label>
+            <label>Minimum preliminary match<input id="scout-min-score" type="number" min="0" max="100" value="55"></label>
+            <button id="active-scout-start" class="primary-button" type="submit">Start Active Scout</button>
+          </form>
+          <div id="active-scout-meta" class="career-tool-meta"><span>Résumé critique will suggest a query.</span></div>
+          <div id="active-scout-actions" class="scout-actions" hidden>
+            <button id="active-scout-run" class="ghost-button" type="button">Search now</button>
+            <button id="active-scout-toggle" class="text-button" type="button">Pause</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="internship-intake">
+        <div class="shared-job-card" id="shared-job-card">
+          <div class="shared-job-icon" aria-hidden="true">↗</div>
+          <div>
+            <span class="section-number">SHARED FROM CHROME</span>
+            <strong id="shared-job-title">Share a job page first</strong>
+            <a id="shared-job-url" href="#" target="_blank" rel="noopener noreferrer" hidden></a>
+            <p id="shared-job-state">Open one internship in Chrome, click the Shepard Bridge, and choose <b>Share current page</b>.</p>
+          </div>
+        </div>
+
+        <form id="internship-intake-form" class="internship-intake-form">
+          <div class="intake-fields">
+            <label>Job title <span>optional</span><input id="internship-title" maxlength="200" placeholder="Shepard can extract this"></label>
+            <label>Company <span>optional</span><input id="internship-company" maxlength="200" placeholder="Shepard can extract this"></label>
+            <label>Deadline <span>optional</span><input id="internship-deadline" type="date"></label>
+            <label class="intake-notes">Notes <span>optional</span><textarea id="internship-notes" rows="2" maxlength="4000" placeholder="Location preference, questions, referral, or anything Shepard should consider"></textarea></label>
+          </div>
+          <div class="intake-action">
+            <div><span id="resume-state" class="resume-state">Checking résumé…</span><small>Wayfinder → Scout → Scribe → Reviewer → Steward</small></div>
+            <button id="import-internship-button" class="primary-button" type="submit">Analyze shared job <span aria-hidden="true">↗</span></button>
+          </div>
+        </form>
+      </div>
+
+      <div class="internship-workspace">
+        <div class="internship-list-shell">
+          <div class="subpanel-heading"><span>POSSIBILITIES</span><small id="internship-count">0 saved</small></div>
+          <div id="internships-list" class="internships-list" aria-live="polite"></div>
+        </div>
+        <div class="internship-detail-shell">
+          <div class="subpanel-heading"><span>APPLICATION TABLE</span><small>Always under your control</small></div>
+          <div id="internship-detail" class="internship-detail empty-state">
+            <div class="empty-glyph" aria-hidden="true">◎</div>
+            <h3>No internship selected</h3>
+            <p>Share a job page to start the five-Sheep review pipeline.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="workspace-grid">
+      <section id="jobs" class="panel jobs-panel" aria-labelledby="jobs-heading">
+        <div class="panel-heading">
+          <div><span class="section-number">02 / WORK</span><h2 id="jobs-heading">Recent activity</h2></div>
+          <span id="job-count" class="count-pill">0 jobs</span>
+        </div>
+        <div id="jobs-list" class="jobs-list" aria-live="polite"></div>
+      </section>
+
+      <section class="panel detail-panel" aria-labelledby="detail-heading">
+        <div class="panel-heading">
+          <div><span class="section-number">WORK IN PROGRESS</span><h2 id="detail-heading">Job detail</h2></div>
+        </div>
+        <div id="job-detail" class="job-detail empty-state">
+          <div class="empty-glyph" aria-hidden="true">⌁</div>
+          <h3>No job selected</h3>
+          <p>Choose a job to inspect its Sheep, handoffs, and result.</p>
+        </div>
+      </section>
+    </div>
+
+    <section id="sheep" class="panel agents-panel" aria-labelledby="agents-heading">
+      <div class="panel-heading">
+        <div><span class="section-number">03 / SHEEP</span><h2 id="agents-heading">The flock</h2></div>
+        <div class="panel-actions"><span class="muted-label">Select an agent to customize it</span><button id="add-sheep-button" class="ghost-button" type="button">+ Create Sheep</button></div>
+      </div>
+      <div id="agents-grid" class="agents-grid"></div>
+    </section>
+
+    <section id="approvals" class="panel approvals-panel" aria-labelledby="approvals-heading">
+      <div class="panel-heading">
+        <div><span class="section-number">04 / CHECK WITH ME</span><h2 id="approvals-heading">Approval queue</h2></div>
+        <span class="safety-label">External actions stop here</span>
+      </div>
+      <div id="approvals-list" class="approvals-list"></div>
+    </section>
+    </div>
+
+    <section id="mode-chat" class="mode-view chat-workspace" aria-labelledby="chat-heading" hidden>
+      <div class="chat-sidebar">
+        <button id="leave-chat-button" class="workspace-return-button chat-return-button" type="button"><span aria-hidden="true">←</span><span>Back to Labyrinth</span></button>
+        <div>
+          <span class="section-number">A QUIET WORD</span>
+          <h2 id="chat-heading">Talk to Shepard</h2>
+          <p>A private conversation powered by your selected Ollama or connected Claude model.</p>
+        </div>
+        <div class="chat-root-card">
+          <img src="/assets/shepard-tree.png" alt="" aria-hidden="true">
+          <div><strong>Shepard</strong><small><span class="status-dot"></span> Local intelligence</small></div>
+        </div>
+        <div class="chat-boundary">
+          <span>STAYS AT HOME</span>
+          <p>Chat stays on this computer. Paste a public webpage URL and Scout can safely read it. Account actions still require a connector and approval.</p>
+        </div>
+        <button id="clear-chat-button" class="ghost-button" type="button">Clear conversation</button>
+      </div>
+      <div class="chat-main">
+        <div id="chat-messages" class="chat-messages" aria-live="polite">
+          <article class="chat-message assistant">
+            <span class="message-avatar">S</span>
+            <div><small>Shepard</small><p>I’m here. Tell me what you’re building, deciding, or trying to get done.</p></div>
+          </article>
+        </div>
+        <form id="chat-form" class="chat-composer">
+          <label class="sr-only" for="chat-input">Message Shepard</label>
+          <textarea id="chat-input" rows="2" maxlength="12000" placeholder="Message Shepard…" required></textarea>
+          <button id="chat-send-button" class="primary-button" type="submit" aria-label="Send message">Send <span aria-hidden="true">↗</span></button>
+          <span class="chat-shortcut"><kbd>⌘</kbd> <kbd>Enter</kbd> to send</span>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="agent-dialog" class="agent-dialog">
+    <form id="agent-form" method="dialog">
+      <div class="dialog-heading">
+        <div><span class="section-number">MEET A SHEEP</span><h2 id="dialog-title">Customize Sheep</h2></div>
+        <button class="icon-button" value="cancel" aria-label="Close dialog">×</button>
+      </div>
+      <input id="agent-id" type="hidden">
+      <label>Name<input id="agent-name" maxlength="80" required></label>
+      <label>Role<input id="agent-role" maxlength="240" required></label>
+      <label>Model<input id="agent-model" list="model-options" maxlength="120" required></label>
+      <datalist id="model-options">
+        <option value="shepard:latest"></option>
+        <option value="qwen3:8b"></option>
+        <option value="claude:claude-sonnet-5"></option>
+        <option value="claude:claude-haiku-4-5-20251001"></option>
+        <option value="gemini:gemini-3.5-flash"></option>
+      </datalist>
+      <label>Character<textarea id="agent-persona" rows="5" maxlength="1000" required></textarea></label>
+      <p class="dialog-note">Character changes tone and working style. It cannot grant new permissions.</p>
+      <div class="dialog-actions">
+        <button class="ghost-button" value="cancel">Cancel</button>
+        <button class="primary-button" id="save-agent" value="default">Save character</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="connections-dialog" class="connections-dialog">
+    <div class="connections-shell">
+      <div class="dialog-heading connections-heading">
+        <div><span class="section-number">THE BRIDGES</span><h2>Connections</h2><p>Give Shepard access one service at a time. ChatGPT/Codex connections are separate from Shepard's local connections.</p></div>
+        <button id="close-connections" class="icon-button" type="button" aria-label="Close connections">×</button>
+      </div>
+      <div class="connection-summary">
+        <div><strong id="connected-count">0</strong><span>connected</span></div>
+        <p>Connecting a service does not let Shepard take sensitive actions automatically. Those still stop at the Gatekeeper.</p>
+      </div>
+      <div id="connector-setup" class="connector-setup" hidden>
+        <div>
+          <span class="section-number">GOOGLE CALENDAR SETUP</span>
+          <h3>One-time local OAuth setup</h3>
+          <p>Create a Google OAuth desktop client and start Shepard with <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code>. Shepard requests read-only calendar access first.</p>
+          <p class="setup-uri">Redirect URI: <code id="google-redirect-uri">http://127.0.0.1:8765/oauth/google-calendar/callback</code></p>
+        </div>
+        <button id="dismiss-setup" class="ghost-button" type="button">Got it</button>
+      </div>
+      <form id="claude-setup" class="connector-setup connector-form" hidden>
+        <div>
+          <span class="section-number">CLAUDE API SETUP</span>
+          <h3>Connect an Anthropic API key</h3>
+          <p>This uses API billing, which is separate from a Claude web subscription. The key is tested, then stored only in Shepard's ignored local <code>secrets</code> folder.</p>
+          <label for="claude-api-key">API key</label>
+          <input id="claude-api-key" type="password" autocomplete="off" maxlength="512" placeholder="Paste your Anthropic API key" required>
+          <p id="claude-setup-status" class="setup-status" role="status"></p>
+        </div>
+        <div class="setup-actions"><button id="dismiss-claude-setup" class="ghost-button" type="button">Cancel</button><button id="connect-claude-button" class="primary-button" type="submit">Connect Claude</button></div>
+      </form>
+      <form id="gemini-setup" class="connector-setup connector-form" hidden>
+        <div>
+          <span class="section-number">GEMINI API SETUP</span>
+          <h3>Connect your Google AI Studio key</h3>
+          <p>The key is tested directly with the Gemini API, then stored only in Shepard's ignored local <code>secrets</code> folder. It provides AI models—not Calendar or Gmail access.</p>
+          <label for="gemini-api-key">API key</label>
+          <input id="gemini-api-key" type="password" autocomplete="off" maxlength="512" placeholder="Paste your Gemini API key" required>
+          <p id="gemini-setup-status" class="setup-status" role="status"></p>
+        </div>
+        <div class="setup-actions"><button id="dismiss-gemini-setup" class="ghost-button" type="button">Cancel</button><button id="connect-gemini-button" class="primary-button" type="submit">Connect Gemini</button></div>
+      </form>
+      <div id="outlook-web-setup" class="connector-setup" hidden>
+        <div>
+          <span class="section-number">OUTLOOK WEB BRIDGE</span>
+          <h3>Share Outlook with Shepard—no Azure setup</h3>
+          <p>New Outlook does not expose your cloud mailbox to local Mac automation. Instead, use your existing signed-in Outlook Web session and explicitly share only the inbox or calendar page you want Shepard to read.</p>
+          <ol class="setup-steps">
+            <li>Open Outlook Mail or Outlook Calendar in Chrome and sign in normally.</li>
+            <li>Open the <strong>Shepard Chrome Bridge</strong> extension.</li>
+            <li>Choose <strong>Share current page</strong>, then ask Shepard about your inbox or calendar.</li>
+          </ol>
+          <p class="setup-uri">Only the page you choose is shared. The text stays in Shepard's memory for at most one hour. Passwords, cookies, history, and other tabs are not read.</p>
+          <div class="job-site-links"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener noreferrer">Open Outlook Mail ↗</a><a href="https://outlook.office.com/calendar/view/week" target="_blank" rel="noopener noreferrer">Open Outlook Calendar ↗</a></div>
+        </div>
+        <div class="setup-actions"><button id="dismiss-outlook-web-setup" class="ghost-button" type="button">Done</button></div>
+      </div>
+      <div id="chrome-setup" class="connector-setup" hidden>
+        <div>
+          <span class="section-number">CHROME BRIDGE SETUP</span>
+          <h3>Install the click-to-share extension</h3>
+          <p>Open <code>chrome://extensions</code>, enable Developer mode, choose <strong>Load unpacked</strong>, and select:</p>
+          <p class="setup-uri"><code id="chrome-extension-path">chrome-extension</code></p>
+          <p>Then generate a pairing code and paste it into the Shepard Chrome Bridge popup.</p>
+          <p id="chrome-pairing-row" class="setup-uri" hidden>Pairing code: <code id="chrome-pairing-code"></code></p>
+        </div>
+        <div class="setup-actions"><button id="dismiss-chrome-setup" class="ghost-button" type="button">Close</button><button id="pair-chrome-button" class="primary-button" type="button">Generate pairing code</button></div>
+      </div>
+      <div id="job-sites-setup" class="connector-setup" hidden>
+        <div>
+          <span class="section-number">SCOUT'S JOB-SITE BRIDGE</span>
+          <h3>Keep each job-site session owner-controlled</h3>
+          <p>For LinkedIn, use its normal Copy link or Share control, then paste the selected job link and relevant details into Shepard—Shepard will not scrape or automate LinkedIn. For Handshake, share or paste one job at a time only when your school and the site's terms permit it. On compatible company and public job sites, you may use <strong>Share this page</strong> in the Shepard Chrome Bridge.</p>
+          <p class="setup-uri">Scout compares only the material you deliberately provide with your private resume. Wayfinder navigation and form actions require Gatekeeper approval; passwords and final submissions stay under your control.</p>
+          <div class="job-site-links"><a href="https://www.linkedin.com/jobs/" target="_blank" rel="noopener noreferrer">Open LinkedIn Jobs ↗</a><a href="https://app.joinhandshake.com/" target="_blank" rel="noopener noreferrer">Open Handshake ↗</a></div>
+        </div>
+        <button id="dismiss-job-sites-setup" class="ghost-button" type="button">Got it</button>
+      </div>
+      <div id="connectors-grid" class="connectors-grid" aria-live="polite"></div>
+    </div>
+  </dialog>
+
+  <dialog id="alarms-dialog" class="alarms-dialog">
+    <div class="alarms-shell">
+      <div class="dialog-heading alarms-heading">
+        <div><span class="section-number">SHEPARD'S BELL</span><h2>Alarms &amp; reminders</h2><p>Set something down now, and Shepard will bring it back at the right time.</p></div>
+        <button id="close-alarms" class="icon-button" type="button" aria-label="Close alarms">×</button>
+      </div>
+      <form id="alarm-form" class="alarm-form">
+        <label>Remind me to<input id="alarm-label" type="text" maxlength="160" placeholder="Call Mom, submit the application…" required></label>
+        <label>When<input id="alarm-time" type="datetime-local" required></label>
+        <label>Repeat<select id="alarm-repeat"><option value="none">Just once</option><option value="daily">Every day</option><option value="weekdays">Weekdays</option><option value="weekly">Every week</option></select></label>
+        <button id="create-alarm-button" class="primary-button" type="submit">Set alarm</button>
+      </form>
+      <div class="alarm-note"><span aria-hidden="true">⌂</span><p>Alarms ring while this Shepard page is open. If the computer sleeps, an overdue alarm rings the next time Shepard wakes.</p></div>
+      <div class="alarm-list-heading"><h3>Coming up</h3><span id="alarm-next-copy">Nothing scheduled</span></div>
+      <div id="alarm-list" class="alarm-list" aria-live="polite"></div>
+    </div>
+  </dialog>
+
+  <dialog id="alarm-ring-dialog" class="alarm-ring-dialog" aria-labelledby="ring-alarm-label">
+    <div class="ringing-alarm">
+      <span class="ringing-orbit" aria-hidden="true"></span>
+      <p>Shepard's bell</p>
+      <h2 id="ring-alarm-label">Time for your reminder</h2>
+      <time id="ring-alarm-time"></time>
+      <div class="dialog-actions">
+        <button id="snooze-alarm" class="ghost-button" type="button">Snooze 10 minutes</button>
+        <button id="dismiss-alarm" class="primary-button" type="button">I'm on it</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js?v=28" defer></script>
+</body>
+</html>

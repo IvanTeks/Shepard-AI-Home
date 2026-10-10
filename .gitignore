@@ -1,0 +1,10 @@
+.DS_Store
+.env
+*.log
+*.zip
+.venv/
+__pycache__/
+*.py[cod]
+data/
+artifacts/
+secrets/

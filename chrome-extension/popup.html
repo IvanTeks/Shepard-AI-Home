@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shepard Chrome Bridge</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">THE BRIDGE</p>
+    <h1>Share with Shepard</h1>
+    <p class="boundary">Only the tab you explicitly share is read. The bridge does not request cookies, passwords, browsing history, or all-site access.</p>
+    <label for="pairing-code">Pairing code</label>
+    <input id="pairing-code" type="password" autocomplete="off" placeholder="Paste code from Shepard Connections">
+    <button id="save-button" class="secondary" type="button">Save and test connection</button>
+    <button id="share-button" class="primary" type="button">Share current page</button>
+    <section class="action-panel" aria-labelledby="actions-heading">
+      <div class="action-heading">
+        <div><p class="eyebrow">WAYFINDER</p><h2 id="actions-heading">Approved actions</h2></div>
+        <button id="refresh-actions-button" class="mini" type="button">Refresh</button>
+      </div>
+      <p id="no-actions">No approved browser actions are waiting.</p>
+      <div id="action-card" hidden>
+        <strong id="action-title"></strong>
+        <p id="action-description"></p>
+        <code id="action-url"></code>
+        <div id="submit-review" hidden>
+          <p id="submit-review-copy"></p>
+          <label class="confirm-row"><input id="confirm-submit" type="checkbox"> I reviewed this destination and want to submit the current form.</label>
+        </div>
+        <button id="run-action-button" class="danger" type="button">Run approved action</button>
+      </div>
+    </section>
+    <button id="open-button" class="secondary" type="button">Open Shepard</button>
+    <p id="status" role="status">Not connected</p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
