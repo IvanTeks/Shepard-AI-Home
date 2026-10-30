@@ -62,6 +62,12 @@ working page if Shepard is already running, or starts the server first if it is
 not. The address is always `http://127.0.0.1:8765/` and only works while the
 local Shepard server is running.
 
+To run Shepard from a private GitHub Codespace instead of leaving a computer
+on, follow [SHEPARD-CLOUD-HOME.md](SHEPARD-CLOUD-HOME.md). The repository now
+contains a ready-to-use browser VS Code environment that starts Shepard and
+privately forwards port 8765. This route uses GitHub's included Codespaces quota
+and stops when idle; it is a free workshop/home-on-demand, not a 24/7 server.
+
 For a new computer, read `TRANSFER-GUIDE.md` and run `Setup Shepard.command` on
 macOS or `Setup-Shepard.bat` on Windows. The transfer package includes Shepard's
 model recipe and current local memory, but never includes the `secrets/` folder.

@@ -1527,3 +1527,160 @@ dialog::backdrop { background: rgba(2,4,9,.72); backdrop-filter: blur(8px); }
   .focus-return-button span:last-child { font-size: 0; }
   .focus-return-button span:last-child::after { content: "Back"; font-size: .73rem; }
 }
+
+/* Responsive frame ----------------------------------------------------------
+   One layout contract for phones, split-screen windows, and minimized desktop
+   windows. Width controls wrapping; the visible height controls the world scale.
+   app.js updates --app-height from visualViewport so the on-screen keyboard does
+   not cover chat or forms on mobile browsers. */
+:root {
+  --app-height: 100dvh;
+  --app-width: 100vw;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --frame-top: max(var(--workspace-inset), var(--safe-top));
+  --frame-right: max(var(--workspace-inset), var(--safe-right));
+  --frame-bottom: max(var(--workspace-inset), var(--safe-bottom));
+  --frame-left: max(var(--workspace-inset), var(--safe-left));
+}
+
+html,
+body,
+main,
+.labyrinth-console { height: var(--app-height, 100dvh); }
+html, body { overscroll-behavior: none; }
+
+.world-menu-button {
+  top: max(22px, calc(var(--safe-top) + 10px));
+  left: max(22px, calc(var(--safe-left) + 10px));
+}
+
+.labyrinth-visual,
+.labyrinth-visual.sky-day,
+.labyrinth-visual.sky-dawn,
+.labyrinth-visual.sky-dusk,
+.labyrinth-visual.sky-night {
+  padding-top: max(26px, calc(var(--safe-top) + 18px));
+  padding-right: max(clamp(18px, 3vw, 44px), var(--safe-right));
+  padding-bottom: max(24px, calc(var(--safe-bottom) + 14px));
+  padding-left: max(clamp(18px, 3vw, 44px), var(--safe-left));
+}
+
+/* The world must fit the shorter axis, not merely the available width. */
+.labyrinth-stage {
+  width: min(82vmin, 850px, calc(var(--app-height) - 166px));
+  max-width: calc(var(--app-width) - 48px);
+  max-height: calc(var(--app-height) - 150px);
+}
+
+.command-console,
+.internships-panel,
+.workspace-grid,
+.agents-panel,
+.approvals-panel,
+#mode-chat.chat-workspace {
+  inset: var(--frame-top) var(--frame-right) var(--frame-bottom) var(--frame-left);
+  max-height: calc(var(--app-height) - var(--frame-top) - var(--frame-bottom));
+  max-width: calc(var(--app-width) - var(--frame-left) - var(--frame-right));
+}
+.command-console {
+  inset: var(--frame-top) var(--frame-right) var(--frame-bottom) auto;
+  width: min(540px, calc(var(--app-width) - var(--frame-left) - var(--frame-right)));
+  justify-content: flex-start;
+}
+
+.rail {
+  top: max(14px, var(--safe-top));
+  right: auto;
+  bottom: max(14px, var(--safe-bottom));
+  left: max(14px, var(--safe-left));
+  max-height: calc(var(--app-height) - max(14px, var(--safe-top)) - max(14px, var(--safe-bottom)));
+}
+
+.connections-dialog,
+.alarms-dialog {
+  max-width: calc(var(--app-width) - max(24px, var(--safe-left)) - max(24px, var(--safe-right)));
+  max-height: calc(var(--app-height) - max(24px, var(--safe-top)) - max(24px, var(--safe-bottom)));
+}
+
+@media (max-width: 760px) {
+  .world-menu-button {
+    top: max(12px, calc(var(--safe-top) + 8px));
+    left: max(12px, calc(var(--safe-left) + 8px));
+  }
+  .rail {
+    inset: max(8px, var(--safe-top)) max(8px, var(--safe-right)) max(8px, var(--safe-bottom)) max(8px, var(--safe-left));
+    width: auto;
+    max-height: none;
+  }
+  .labyrinth-visual,
+  .labyrinth-visual.sky-day,
+  .labyrinth-visual.sky-dawn,
+  .labyrinth-visual.sky-dusk,
+  .labyrinth-visual.sky-night {
+    padding-top: max(18px, calc(var(--safe-top) + 12px));
+    padding-right: max(8px, var(--safe-right));
+    padding-bottom: max(18px, calc(var(--safe-bottom) + 10px));
+    padding-left: max(8px, var(--safe-left));
+  }
+  .labyrinth-stage {
+    width: min(96vw, 620px, calc(var(--app-height) - 190px));
+    max-width: calc(var(--app-width) - 32px);
+    max-height: calc(var(--app-height) - 174px);
+    margin-top: clamp(6px, 2vh, 18px);
+  }
+  .command-console { width: auto; }
+  .panel-heading { flex-wrap: wrap; }
+  .panel-heading > * { min-width: 0; }
+  .workspace-return-button,
+  .ghost-button,
+  .primary-button,
+  .mode-button { min-height: 44px; }
+  .chat-composer textarea { max-height: min(180px, calc(var(--app-height) * .28)); }
+  .connections-dialog { width: auto; }
+}
+
+/* Short landscape phones and horizontally split desktop windows. */
+@media (max-height: 620px) {
+  .labyrinth-heading { margin-top: 42px; }
+  .labyrinth-heading h2 { margin-top: 3px; font-size: clamp(.98rem, 2.7vw, 1.3rem); }
+  .labyrinth-heading-actions { gap: 6px; }
+  .labyrinth-stage {
+    width: min(72vmin, 620px, calc(var(--app-height) - 142px));
+    max-height: calc(var(--app-height) - 132px);
+    margin-top: -8px;
+  }
+  .scene-readout { bottom: -1px; }
+  .command-console { padding-top: 68px; padding-bottom: 20px; }
+  .command-console h2 { margin-block: 12px 6px; font-size: clamp(1.7rem, 5vh, 2.35rem); }
+  .command-console > p { margin-block: 0 12px; }
+  .goal-form textarea { min-height: 96px; max-height: 24vh; }
+  .internships-panel > .panel-heading,
+  .agents-panel > .panel-heading,
+  .approvals-panel > .panel-heading { padding-top: 66px; }
+  #mode-chat .chat-sidebar { padding-block: 10px; }
+  #mode-chat .chat-messages { padding-block: 14px; }
+  #mode-chat .chat-composer { padding-block: 10px; }
+  #mode-chat .chat-composer textarea { min-height: 48px; max-height: 92px; }
+  .shepard-focus-panel { top: max(64px, calc(var(--safe-top) + 54px)); bottom: max(8px, var(--safe-bottom)); }
+}
+
+@media (max-width: 430px) {
+  .labyrinth-heading { gap: 10px; }
+  .labyrinth-heading > div:first-child { min-width: 0; }
+  .labyrinth-heading-actions { max-width: 48%; justify-content: flex-end; }
+  .weather-status { min-height: 36px; padding-inline: 10px; }
+  #weather-copy { max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .command-console { padding-inline: 18px; }
+  .command-console h2 { font-size: clamp(2rem, 10vw, 2.6rem); }
+  .goal-form textarea { min-height: 128px; }
+  .focus-chat-form { padding-bottom: max(12px, var(--safe-bottom)); }
+  .toast {
+    right: max(12px, var(--safe-right));
+    bottom: max(12px, var(--safe-bottom));
+    left: max(12px, var(--safe-left));
+    max-width: none;
+  }
+}

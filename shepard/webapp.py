@@ -1704,7 +1704,8 @@ def create_server(host: str = "127.0.0.1", port: int = 8765,
 def serve(host: str = "127.0.0.1", port: int = 8765, config_path: str | Path | None = None,
           open_browser: bool = True) -> None:
     server = create_server(host, port, config_path)
-    url = f"http://{host}:{server.server_address[1]}"
+    browser_host = "127.0.0.1" if host in {"0.0.0.0", "::"} else host
+    url = f"http://{browser_host}:{server.server_address[1]}"
     if open_browser:
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()
     print(f"Shepard Control Center: {url}")

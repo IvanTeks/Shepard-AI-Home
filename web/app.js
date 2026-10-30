@@ -21,6 +21,25 @@ const loadLabyrinthScene = () => {
   return labyrinthScenePromise;
 };
 
+// Mobile browsers and split-screen windows change the *visible* frame without
+// always updating 100vh. Keep one authoritative height in CSS so the world,
+// drawers, chat, and dialogs all resize together (including when a phone
+// keyboard opens).
+function syncViewportFrame() {
+  const viewport = window.visualViewport;
+  const width = Math.max(320, Math.round(viewport?.width || window.innerWidth));
+  const height = Math.max(320, Math.round(viewport?.height || window.innerHeight));
+  document.documentElement.style.setProperty("--app-width", `${width}px`);
+  document.documentElement.style.setProperty("--app-height", `${height}px`);
+  document.documentElement.toggleAttribute("data-short-frame", height <= 620);
+  document.documentElement.toggleAttribute("data-narrow-frame", width <= 760);
+}
+
+syncViewportFrame();
+window.addEventListener("resize", syncViewportFrame, { passive: true });
+window.addEventListener("orientationchange", syncViewportFrame, { passive: true });
+window.visualViewport?.addEventListener("resize", syncViewportFrame, { passive: true });
+
 async function startLabyrinthScene() {
   if (labyrinthScene) return labyrinthScene;
   try {

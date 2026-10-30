@@ -1,0 +1,18 @@
+{
+  "name": "Shepard Cloud Home",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "forwardPorts": [8765],
+  "portsAttributes": {
+    "8765": {
+      "label": "Shepard Labyrinth",
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
+    }
+  },
+  "postCreateCommand": "python3 -m shepard init",
+  "postStartCommand": "bash Start-Shepard-Cloud.sh",
+  "remoteEnv": {
+    "SHEPARD_HOST": "0.0.0.0",
+    "SHEPARD_MODEL_OVERRIDE": "gemini:gemini-3.8-flash"
+  }
+}

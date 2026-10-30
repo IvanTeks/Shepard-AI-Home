@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Sequence
@@ -84,6 +85,10 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--deny", action="store_true")
 
     web = sub.add_parser("web", help="Launch the local web control center")
+    web.add_argument(
+        "--host", default=os.environ.get("SHEPARD_HOST", "127.0.0.1"),
+        help="Network interface to bind (default: 127.0.0.1; use 0.0.0.0 in a private cloud workspace)",
+    )
     web.add_argument("--port", type=int, default=8765)
     web.add_argument("--no-open", action="store_true", help="Do not open a browser automatically")
 
@@ -203,7 +208,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         if args.command == "web":
             from .webapp import serve
-            serve("127.0.0.1", args.port, args.config, open_browser=not args.no_open)
+            serve(args.host, args.port, args.config, open_browser=not args.no_open)
             return 0
 
         if args.command == "desktop":

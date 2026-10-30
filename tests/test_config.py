@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from shepard.config import add_sheep, load_settings, update_persona
 
@@ -30,6 +31,14 @@ class ConfigTests(unittest.TestCase):
             after = update_persona(path, "scout", name="Mara", persona="Fearless and precise")
             self.assertEqual(after.name, "Mara")
             self.assertEqual(after.capabilities, before.capabilities)
+
+    def test_cloud_model_override_changes_models_without_editing_personas(self):
+        with mock.patch.dict("os.environ", {"SHEPARD_MODEL_OVERRIDE": "gemini:test-model"}):
+            settings = load_settings()
+        self.assertEqual(settings.shepard.model, "gemini:test-model")
+        self.assertTrue(settings.sheep)
+        self.assertTrue(all(profile.model == "gemini:test-model" for profile in settings.sheep))
+        self.assertEqual(settings.agent("scout").name, "Scout")
 
     def test_new_sheep_is_saved_with_a_unique_id(self):
         with tempfile.TemporaryDirectory() as directory:

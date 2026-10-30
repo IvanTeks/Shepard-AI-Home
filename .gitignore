@@ -3,6 +3,7 @@
 *.log
 *.zip
 .venv/
+.runtime/
 __pycache__/
 *.py[cod]
 data/

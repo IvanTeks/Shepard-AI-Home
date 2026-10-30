@@ -49,6 +49,13 @@ def load_settings(path: str | Path | None = None) -> Settings:
     project_root = config_path.parent.parent
     shepard_raw = dict(raw["shepard"])
     shepard_raw.setdefault("capabilities", [])
+    model_override = os.environ.get("SHEPARD_MODEL_OVERRIDE", "").strip()
+    if model_override:
+        shepard_raw["model"] = model_override
+    sheep_raw = [dict(item) for item in raw.get("sheep", [])]
+    if model_override:
+        for profile in sheep_raw:
+            profile["model"] = model_override
     policy = raw.get("policy", {})
     owner_profile = raw.get("owner_profile")
     settings = Settings(
@@ -61,7 +68,7 @@ def load_settings(path: str | Path | None = None) -> Settings:
             _resolve_from_project(project_root, str(owner_profile)) if owner_profile else None
         ),
         shepard=AgentProfile.from_dict(shepard_raw),
-        sheep=tuple(AgentProfile.from_dict(item) for item in raw.get("sheep", [])),
+        sheep=tuple(AgentProfile.from_dict(item) for item in sheep_raw),
         approval_required=frozenset(str(item) for item in policy.get("approval_required", [])),
         max_tasks_per_goal=int(policy.get("max_tasks_per_goal", 8)),
         max_context_characters=int(policy.get("max_context_characters", 24000)),
