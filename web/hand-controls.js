@@ -20,9 +20,19 @@ const PINKY_TIP = 20;
 // off when the fingers move a few pixels apart during a fast gesture.
 const PINCH_ON = 0.37;
 const PINCH_OFF = 0.52;
-const TRACKING_SMOOTHING = 0.66;
-const FAST_TRACKING_SMOOTHING = 0.84;
-const FAST_MOVEMENT_THRESHOLD = 0.018;
+// Adaptive, time-based filtering keeps a resting hand calm without making a
+// fast sweep feel heavy. These are 60fps reference values; alphaForFrame()
+// converts them for the camera's actual frame rate.
+const STEADY_FILTER_ALPHA = 0.32;
+const FAST_FILTER_ALPHA = 0.93;
+const FULL_SPEED_AT = 0.82;
+const VELOCITY_BLEND = 0.42;
+const PREDICTION_SECONDS = 0.010;
+const MAX_PREDICTION = 0.009;
+const DROPOUT_GRACE_MS = 105;
+const PALM_RELEASE_GRACE_MS = 68;
+const INDEX_RELEASE_GRACE_MS = 52;
+const ZOOM_NOISE_FLOOR = 0.0018;
 const FINGERTIPS = [THUMB_TIP, INDEX_TIP, MIDDLE_TIP, RING_TIP, PINKY_TIP];
 const HAND_CONNECTIONS = [
   [0, 1], [1, 2], [2, 3], [3, 4],
@@ -35,6 +45,51 @@ const HAND_CONNECTIONS = [
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function alphaForFrame(referenceAlpha, elapsedMs) {
+  const frames = clamp(elapsedMs / (1000 / 60), 0.35, 3);
+  return 1 - Math.pow(1 - referenceAlpha, frames);
+}
+
+function smoothstep(value) {
+  const t = clamp(value, 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+function adaptivePoint(hand, raw, now) {
+  const elapsedMs = clamp(now - (hand.updatedAt || now - 16.67), 5, 50);
+  const elapsedSeconds = elapsedMs / 1000;
+  const oldPoint = hand.filteredPoint || raw;
+  const speed = distance(hand.rawPoint || raw, raw) / elapsedSeconds;
+  const response = smoothstep(speed / FULL_SPEED_AT);
+  const referenceAlpha = STEADY_FILTER_ALPHA
+    + (FAST_FILTER_ALPHA - STEADY_FILTER_ALPHA) * response;
+  const alpha = alphaForFrame(referenceAlpha, elapsedMs);
+  const filteredPoint = {
+    x: oldPoint.x + (raw.x - oldPoint.x) * alpha,
+    y: oldPoint.y + (raw.y - oldPoint.y) * alpha
+  };
+  const instantaneousVelocity = {
+    x: (filteredPoint.x - oldPoint.x) / elapsedSeconds,
+    y: (filteredPoint.y - oldPoint.y) / elapsedSeconds
+  };
+  const velocity = {
+    x: (hand.velocity?.x || 0) * (1 - VELOCITY_BLEND) + instantaneousVelocity.x * VELOCITY_BLEND,
+    y: (hand.velocity?.y || 0) * (1 - VELOCITY_BLEND) + instantaneousVelocity.y * VELOCITY_BLEND
+  };
+  hand.rawPoint = raw;
+  hand.filteredPoint = filteredPoint;
+  hand.velocity = velocity;
+  hand.updatedAt = now;
+  return {
+    x: clamp(filteredPoint.x + clamp(velocity.x * PREDICTION_SECONDS, -MAX_PREDICTION, MAX_PREDICTION), 0, 1),
+    y: clamp(filteredPoint.y + clamp(velocity.y * PREDICTION_SECONDS, -MAX_PREDICTION, MAX_PREDICTION), 0, 1)
+  };
 }
 
 function isFingerExtended(points, tip, pip) {
@@ -59,6 +114,7 @@ export class ShepardHandTracker {
     this.landmarker = null;
     this.stream = null;
     this.frame = 0;
+    this.usingVideoFrames = false;
     this.running = false;
     this.lastVideoTime = -1;
     this.handStates = new Map();
@@ -104,12 +160,16 @@ export class ShepardHandTracker {
       });
     }
     this.running = true;
-    this.loop();
+    this.scheduleNextFrame();
   }
 
   stop() {
     this.running = false;
-    cancelAnimationFrame(this.frame);
+    if (this.usingVideoFrames && this.video.cancelVideoFrameCallback) {
+      this.video.cancelVideoFrameCallback(this.frame);
+    } else {
+      cancelAnimationFrame(this.frame);
+    }
     this.landmarker?.close();
     this.landmarker = null;
     this.stream?.getTracks().forEach((track) => track.stop());
@@ -126,19 +186,34 @@ export class ShepardHandTracker {
     this.emitStatus({ hands: 0, mode: "idle", activation: "idle" });
   }
 
-  loop = () => {
+  scheduleNextFrame() {
     if (!this.running) return;
-    this.frame = requestAnimationFrame(this.loop);
-    if (!this.landmarker || this.video.readyState < 2) return;
-    if (this.video.currentTime === this.lastVideoTime) return;
-    this.lastVideoTime = this.video.currentTime;
-    const result = this.landmarker.detectForVideo(this.video, performance.now());
-    const labels = result.handedness.map((entry, index) => entry[0]?.categoryName || `hand-${index}`);
-    this.processHands(result.landmarks, labels);
-    this.drawOverlay(result.landmarks);
+    if (this.video.requestVideoFrameCallback) {
+      this.usingVideoFrames = true;
+      this.frame = this.video.requestVideoFrameCallback(this.loop);
+    } else {
+      this.usingVideoFrames = false;
+      this.frame = requestAnimationFrame(this.loop);
+    }
+  }
+
+  loop = (frameNow) => {
+    if (!this.running) return;
+    const now = Number.isFinite(frameNow) ? frameNow : performance.now();
+    try {
+      if (this.landmarker && this.video.readyState >= 2 && this.video.currentTime !== this.lastVideoTime) {
+        this.lastVideoTime = this.video.currentTime;
+        const result = this.landmarker.detectForVideo(this.video, now);
+        const labels = result.handedness.map((entry, index) => entry[0]?.categoryName || `hand-${index}`);
+        this.processHands(result.landmarks, labels, now);
+        this.drawOverlay(result.landmarks);
+      }
+    } finally {
+      this.scheduleNextFrame();
+    }
   };
 
-  processHands(landmarks, labels) {
+  processHands(landmarks, labels, now = performance.now()) {
     const controls = [];
     const seen = new Set();
     landmarks.forEach((points, index) => {
@@ -159,8 +234,8 @@ export class ShepardHandTracker {
         x: 1 - palmAnchors.reduce((sum, landmark) => sum + points[landmark].x, 0) / palmAnchors.length,
         y: palmAnchors.reduce((sum, landmark) => sum + points[landmark].y, 0) / palmAnchors.length
       };
-      const indexExtended = isFingerExtended(points, INDEX_TIP, INDEX_PIP);
-      const openPalm = isOpenPalm(points);
+      const indexExtendedNow = isFingerExtended(points, INDEX_TIP, INDEX_PIP);
+      const openPalmNow = isOpenPalm(points);
       let hand = this.handStates.get(label);
       if (!hand) {
         hand = {
@@ -169,26 +244,36 @@ export class ShepardHandTracker {
           controlActive: false,
           activation: "idle",
           point: palmPoint,
-          missedFrames: 0
+          rawPoint: palmPoint,
+          filteredPoint: palmPoint,
+          velocity: { x: 0, y: 0 },
+          updatedAt: now,
+          lastSeenAt: now,
+          lastOpenPalmAt: openPalmNow ? now : 0,
+          lastIndexExtendedAt: indexExtendedNow ? now : 0
         };
         this.handStates.set(label, hand);
       }
-      hand.missedFrames = 0;
+      hand.lastSeenAt = now;
+      if (openPalmNow) hand.lastOpenPalmAt = now;
+      if (indexExtendedNow) hand.lastIndexExtendedAt = now;
+      const openPalm = openPalmNow
+        || (hand.openPalm && now - hand.lastOpenPalmAt <= PALM_RELEASE_GRACE_MS);
+      const indexExtended = indexExtendedNow
+        || (hand.pinching && now - hand.lastIndexExtendedAt <= INDEX_RELEASE_GRACE_MS);
       // A pinch only counts while the index finger is out. A closed fist can
       // therefore release the scene instead of accidentally looking like a pinch.
       if (hand.pinching && (!indexExtended || ratio > PINCH_OFF)) hand.pinching = false;
       else if (!hand.pinching && indexExtended && ratio < PINCH_ON) hand.pinching = true;
       const activation = openPalm ? "palm" : hand.pinching ? "pinch" : "idle";
       const raw = openPalm ? palmPoint : pinchPoint;
-      if (activation !== hand.activation) hand.point = raw;
-      const movement = distance(hand.point, raw);
-      const smoothing = movement > FAST_MOVEMENT_THRESHOLD
-        ? FAST_TRACKING_SMOOTHING
-        : TRACKING_SMOOTHING;
-      hand.point = {
-        x: hand.point.x + (raw.x - hand.point.x) * smoothing,
-        y: hand.point.y + (raw.y - hand.point.y) * smoothing
-      };
+      if (activation !== hand.activation) {
+        hand.rawPoint = raw;
+        hand.filteredPoint = raw;
+        hand.velocity = { x: 0, y: 0 };
+        hand.updatedAt = now;
+      }
+      hand.point = adaptivePoint(hand, raw, now);
       hand.openPalm = openPalm;
       hand.activation = activation;
       hand.controlActive = activation !== "idle";
@@ -196,9 +281,9 @@ export class ShepardHandTracker {
     });
     for (const [label, hand] of this.handStates.entries()) {
       if (seen.has(label)) continue;
-      hand.missedFrames = (hand.missedFrames || 0) + 1;
-      // Hold an active gesture through one dropped camera frame so control does not stutter.
-      if (hand.missedFrames === 1 && hand.controlActive) {
+      // Bridge short camera/model dropouts. Time-based grace behaves the same at
+      // 24, 30, or 60fps and prevents a one-frame miss from releasing the scene.
+      if (now - hand.lastSeenAt <= DROPOUT_GRACE_MS && hand.controlActive) {
         controls.push({ label, point: hand.point, activation: hand.activation });
       }
       else this.handStates.delete(label);
@@ -226,12 +311,15 @@ export class ShepardHandTracker {
     } else if (mode === "zoom") {
       const currentDistance = distance(controls[0].point, controls[1].point);
       if (this.previousZoomDistance && currentDistance > 1e-4) {
-        const factor = Math.min(1.18, Math.max(0.85, this.previousZoomDistance / currentDistance));
-        this.callbacks.onZoom(factor);
+        const logChange = Math.log(this.previousZoomDistance / currentDistance);
+        if (Math.abs(logChange) > ZOOM_NOISE_FLOOR) {
+          const factor = Math.exp(clamp(logChange * 0.88, -0.13, 0.13));
+          this.callbacks.onZoom(factor);
+        }
       }
       this.previousZoomDistance = currentDistance;
     }
-    this.emitStatus({ hands: landmarks.length, mode, activation });
+    this.emitStatus({ hands: Math.max(landmarks.length, controls.length), mode, activation });
   }
 
   emitStatus(status) {

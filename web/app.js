@@ -13,7 +13,7 @@ let labyrinthScene = null;
 let labyrinthScenePromise = null;
 let alarmAudioContext = null;
 const loadHandControlsModule = () => {
-  if (!handControlsModulePromise) handControlsModulePromise = import("/hand-controls.js?v=3");
+  if (!handControlsModulePromise) handControlsModulePromise = import("/hand-controls.js?v=4");
   return handControlsModulePromise;
 };
 const loadLabyrinthScene = () => {
@@ -875,7 +875,7 @@ async function startGestureControls() {
     button.setAttribute("aria-pressed", "true");
     $("#gesture-toggle-copy").textContent = "Gestures on";
     updateGestureStatus();
-    toast("Responsive hand controls are on—pinch to orbit");
+    toast("Smooth hand controls are on—one hand orbits, two hands zoom");
   } catch (error) {
     const denied = error?.name === "NotAllowedError";
     stopGestureControls({ keepPanel: true });

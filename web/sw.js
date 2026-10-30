@@ -1,4 +1,4 @@
-const CACHE = "shepard-shell-v29";
+const CACHE = "shepard-shell-v30";
 const ASSETS = [
   "/", "/styles.css", "/app.js", "/labyrinth-scene.js", "/hand-controls.js", "/file-redirect.js", "/favicon.svg", "/manifest.webmanifest",
   "/assets/shepard-tree.png", "/assets/sheep-sprites.png", "/assets/domain-houses.png",
