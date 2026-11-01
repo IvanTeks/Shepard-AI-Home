@@ -32,9 +32,10 @@ Account connectors and device control come after this foundation is tested.
 - Shepard's Bell provides persistent one-time, daily, weekday, and weekly alarms with a full-screen ring, sound, dismiss, and ten-minute snooze. Overdue alarms ring on the next launch.
 - The Connections menu reports honest per-service setup state and includes Claude, Wayfinder's approval-gated Chrome bridge, Google Calendar OAuth, and owner-controlled Outlook Web sharing for mail and calendar pages.
 - Wayfinder is a dedicated Browser Sheep with separate `browser.read`, `browser.navigate`, and `browser.submit` capabilities.
-- The Internship Command Center turns one explicitly shared job page into a saved, résumé-matched application workspace with a fixed Wayfinder → Scout → Scribe → Reviewer → Steward review route.
-- The Résumé Desk accepts local DOCX, TXT, and Markdown uploads, produces a Scout + Reviewer critique, and derives grounded role and keyword suggestions.
-- Active Scout checks Remotive's public remote-job API and the public SimplifyJobs/Pitt CSC internship registry on a schedule while Shepard is open, ranks matches locally against the résumé, and saves strong discoveries for owner review.
+- The Career Garden separates opportunity triage, Active Scout, résumé work, and Chrome imports into four focused, responsive stations.
+- Résumé Studio accepts local DOCX, TXT, and Markdown uploads, produces a Scout + Reviewer critique, and derives grounded role and keyword suggestions.
+- Active Scout checks Remotive's public remote-job API and the public SimplifyJobs/Pitt CSC internship registry on a schedule while Shepard is open. Its local evidence score weighs requested-role alignment, grounded résumé signals, and comma-separated location preferences before saving discoveries for owner review.
+- Research Trails links to official NSF REU, USAJOBS Early Careers, NASA internship, and ORISE undergraduate portals for owner-led research without claiming automated access those services do not provide.
 - No third-party Python packages are required.
 
 The tiny domain-building sprites are adapted from Shade's CC0 MiniWorld Sprites;
@@ -131,19 +132,24 @@ shows the destination and field names without reading their values, blocks
 password/payment/banking/identity fields, requires exactly one visible non-search
 form, and requires a final checkbox before submission.
 
-## Use the Internship Command Center
+## Use the Career Garden
 
-Start with the **Résumé Desk** in **05 / Internships**. Upload a DOCX, TXT, or
+Start with **Résumé Studio** in **05 / Internships**. Upload a DOCX, TXT, or
 Markdown résumé and let Scout and Reviewer finish the critique. The original
 upload and normalized text remain in `data/owner/`; the résumé is not sent to a
 job board.
 
 Use **Active Scout** to choose a focused query, optional location preference,
 schedule, and minimum preliminary match score. It uses the public Remotive and
-SimplifyJobs/Pitt CSC feeds, never sends résumé text, and runs while the Shepard server is open. New matches
+SimplifyJobs/Pitt CSC feeds, never sends résumé text, and runs while the Shepard server is open. The shortest schedule makes one Remotive request every six hours, respecting its public API guidance. New matches
 arrive as **discovered** opportunities. Open a discovery and choose **Run full
 five-Sheep review** before preparing an application. Each discovery links back
 to its source listing; Remotive listings keep the required attribution.
+
+Use **Research Trails** for programs that require a human visit, including NSF
+REU sites, federal Pathways roles, NASA programs, and ORISE research placements.
+Choose a live posting there, then bring it back through the Chrome Bridge for
+the same evidence route and owner-controlled tracking.
 
 For a page you already found manually:
 

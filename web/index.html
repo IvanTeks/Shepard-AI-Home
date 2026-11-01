@@ -172,94 +172,146 @@
       <article class="metric-alert"><span>Approvals</span><strong id="metric-approvals">0</strong><small>waiting for you</small></article>
     </section>
 
-    <section id="internships" class="panel internships-panel" aria-labelledby="internships-heading">
+    <section id="internships" class="panel internships-panel career-garden" aria-labelledby="internships-heading">
       <div class="panel-heading internship-heading">
-        <div><span class="section-number">05 / CAREER GARDEN</span><h2 id="internships-heading">From job post to application plan</h2></div>
+        <div class="career-heading-copy">
+          <span class="section-number">05 / CAREER GARDEN</span>
+          <h2 id="internships-heading">Grow the right opportunity</h2>
+          <p>Scout the field, compare the evidence, and move only the strongest roles toward an application.</p>
+        </div>
         <div class="internship-stats" aria-label="Internship pipeline summary">
           <span><strong id="internship-stat-total">0</strong> tracked</span>
           <span><strong id="internship-stat-ready">0</strong> reviewed</span>
-          <span><strong id="internship-stat-applied">0</strong> applied</span>
+          <span><strong id="internship-stat-applied">0</strong> moving</span>
         </div>
       </div>
 
-      <div class="internship-automation-grid">
-        <section class="career-tool-card resume-desk" aria-labelledby="resume-desk-heading">
-          <div class="career-tool-heading">
-            <div><span class="section-number">YOUR RÉSUMÉ</span><h3 id="resume-desk-heading">Submit, critique, and focus</h3></div>
-            <span id="resume-review-status" class="status-badge saved">Not reviewed</span>
+      <nav class="career-stations" aria-label="Career Garden stations">
+        <button class="career-station active" type="button" data-career-view="opportunities" aria-pressed="true"><span>01</span><strong>Opportunities</strong><small>Compare the field</small></button>
+        <button class="career-station" type="button" data-career-view="scout" aria-pressed="false"><span>02</span><strong>Active Scout</strong><small>Search and research</small></button>
+        <button class="career-station" type="button" data-career-view="resume" aria-pressed="false"><span>03</span><strong>Résumé Studio</strong><small>Strengthen your profile</small></button>
+        <button class="career-station" type="button" data-career-view="import" aria-pressed="false"><span>04</span><strong>Bring a Posting</strong><small>Analyze one page</small></button>
+      </nav>
+
+      <div class="career-views">
+        <section class="career-view active" data-career-panel="opportunities" aria-labelledby="career-opportunities-heading">
+          <div class="career-view-intro">
+            <div><span class="section-number">THE FIELD</span><h3 id="career-opportunities-heading">Your opportunity map</h3></div>
+            <p>Preliminary scores help you triage. Open a promising role for the full five-Sheep review before acting.</p>
           </div>
-          <p class="career-tool-copy">Upload a DOCX, TXT, or Markdown résumé. Shepard keeps it on this Mac, critiques it, and turns only grounded skills into a search profile.</p>
-          <form id="resume-upload-form" class="resume-upload-form">
-            <label class="file-picker">Résumé file<input id="resume-file" type="file" accept=".docx,.txt,.md" required></label>
-            <button id="resume-upload-button" class="primary-button" type="submit">Upload &amp; critique</button>
-          </form>
-          <div class="career-tool-meta"><span id="resume-filename">No uploaded résumé</span><button id="resume-review-button" class="text-button" type="button" disabled>Critique again</button></div>
-          <div id="resume-search-profile" class="search-profile" hidden></div>
-          <details id="resume-critique-panel" class="critique-panel" hidden>
-            <summary>Read Shepard's critique</summary>
-            <div id="resume-critique" class="message-body result-markdown"></div>
-          </details>
+          <div class="career-filter-bar">
+            <label class="career-search-field"><span class="sr-only">Search saved opportunities</span><span aria-hidden="true">⌕</span><input id="internship-filter-query" type="search" placeholder="Search role, company, skill, or location"></label>
+            <label><span>Stage</span><select id="internship-filter-stage"><option value="all">All stages</option><option value="discovered">Discovered</option><option value="reviewing">Reviewing</option><option value="reviewed">Reviewed</option><option value="applied">Applied</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="archived">Archived</option></select></label>
+            <label><span>Order</span><select id="internship-sort"><option value="match">Best match</option><option value="updated">Recently updated</option><option value="deadline">Nearest deadline</option><option value="company">Company A–Z</option></select></label>
+          </div>
+          <div class="internship-workspace">
+            <div class="internship-list-shell">
+              <div class="subpanel-heading"><span>POSSIBILITIES</span><small id="internship-count">0 shown</small></div>
+              <div id="internships-list" class="internships-list" aria-live="polite"></div>
+            </div>
+            <div class="internship-detail-shell">
+              <div class="subpanel-heading"><button id="career-mobile-back" class="career-mobile-back" type="button" aria-label="Back to opportunity list">←</button><span>APPLICATION TABLE</span><small>Owner controlled</small></div>
+              <div id="internship-detail" class="internship-detail empty-state">
+                <div class="empty-glyph" aria-hidden="true">◎</div>
+                <h3>No internship selected</h3>
+                <p>Choose a possibility to inspect its evidence, route, and next action.</p>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section class="career-tool-card active-scout" aria-labelledby="active-scout-heading">
-          <div class="career-tool-heading">
-            <div><span class="section-number">SCOUT ON THE ROAD</span><h3 id="active-scout-heading">Search while Shepard is open</h3></div>
+        <section class="career-view" data-career-panel="scout" aria-labelledby="active-scout-heading" hidden>
+          <div class="career-view-intro">
+            <div><span class="section-number">SCOUT ON THE ROAD</span><h3 id="active-scout-heading">Keep watch without losing control</h3></div>
             <span id="active-scout-status" class="status-badge saved">Not running</span>
           </div>
-          <p class="career-tool-copy">Scout checks Remotive and the public SimplifyJobs/Pitt CSC internship registry, ranks matches locally, and saves strong discoveries. It never submits applications.</p>
-          <form id="active-scout-form" class="active-scout-form">
-            <label>Search query<input id="scout-query" maxlength="500" placeholder="e.g. software engineering intern"></label>
-            <label>Location preference <span>optional</span><input id="scout-location" maxlength="200" placeholder="Remote, Buffalo, New York…"></label>
-            <label>Run every<select id="scout-interval"><option value="6">6 hours</option><option value="12">12 hours</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select></label>
-            <label>Minimum preliminary match<input id="scout-min-score" type="number" min="0" max="100" value="55"></label>
-            <button id="active-scout-start" class="primary-button" type="submit">Start Active Scout</button>
-          </form>
-          <div id="active-scout-meta" class="career-tool-meta"><span>Résumé critique will suggest a query.</span></div>
-          <div id="active-scout-actions" class="scout-actions" hidden>
-            <button id="active-scout-run" class="ghost-button" type="button">Search now</button>
-            <button id="active-scout-toggle" class="text-button" type="button">Pause</button>
+          <div class="scout-workspace">
+            <section class="career-tool-card active-scout">
+              <p class="career-tool-copy">Scout checks free public feeds, ranks listings against your grounded résumé profile, and saves only roles above your threshold. It never submits applications.</p>
+              <form id="active-scout-form" class="active-scout-form">
+                <label>Search query<input id="scout-query" maxlength="500" placeholder="e.g. software engineering intern"></label>
+                <label>Location preferences <span>separate with commas</span><input id="scout-location" maxlength="200" placeholder="Remote, Buffalo, New York"></label>
+                <label>Run every<select id="scout-interval"><option value="6">6 hours</option><option value="12">12 hours</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select></label>
+                <label>Minimum preliminary match<input id="scout-min-score" type="number" min="0" max="100" value="55"></label>
+                <button id="active-scout-start" class="primary-button" type="submit">Start Active Scout</button>
+              </form>
+              <div id="active-scout-meta" class="career-tool-meta"><span>Résumé critique will suggest a focused query.</span></div>
+              <div id="active-scout-actions" class="scout-actions" hidden>
+                <button id="active-scout-run" class="ghost-button" type="button">Search now</button>
+                <button id="active-scout-toggle" class="text-button" type="button">Pause</button>
+              </div>
+              <div class="scout-boundary"><span aria-hidden="true">⌾</span><p><strong>Public discovery only.</strong> Your résumé stays local. Every application remains behind Shepard's approval gate.</p></div>
+            </section>
+            <section class="research-trails" aria-labelledby="research-trails-heading">
+              <div class="research-trails-heading"><span class="section-number">RESEARCH TRAILS</span><h3 id="research-trails-heading">Official programs worth walking</h3><p>These portals need a human visit. Open one, choose a posting, then share that page through the Chrome Bridge.</p></div>
+              <div class="research-source-grid">
+                <a class="research-source" href="https://www.nsf.gov/funding/initiatives/reu" target="_blank" rel="noopener noreferrer"><span>NSF</span><strong>Research Experiences for Undergraduates</strong><small>Funded research sites across STEM disciplines</small><b>Explore REU ↗</b></a>
+                <a class="research-source" href="https://www.usajobs.gov/EarlyCareers" target="_blank" rel="noopener noreferrer"><span>USAJOBS</span><strong>Federal internships &amp; Pathways</strong><small>Student and recent-graduate public service roles</small><b>Explore federal roles ↗</b></a>
+                <a class="research-source" href="https://www.nasa.gov/learning-resources/internship-programs/" target="_blank" rel="noopener noreferrer"><span>NASA</span><strong>OSTEM &amp; Pathways internships</strong><small>Project placements and civil-service pathways</small><b>Explore NASA ↗</b></a>
+                <a class="research-source" href="https://orise.orau.gov/internships-fellowships/undergraduates.html" target="_blank" rel="noopener noreferrer"><span>ORISE</span><strong>Research internships &amp; fellowships</strong><small>National laboratories and federal research facilities</small><b>Explore ORISE ↗</b></a>
+              </div>
+            </section>
           </div>
         </section>
-      </div>
 
-      <div class="internship-intake">
-        <div class="shared-job-card" id="shared-job-card">
-          <div class="shared-job-icon" aria-hidden="true">↗</div>
-          <div>
-            <span class="section-number">SHARED FROM CHROME</span>
-            <strong id="shared-job-title">Share a job page first</strong>
-            <a id="shared-job-url" href="#" target="_blank" rel="noopener noreferrer" hidden></a>
-            <p id="shared-job-state">Open one internship in Chrome, click the Shepard Bridge, and choose <b>Share current page</b>.</p>
+        <section class="career-view" data-career-panel="resume" aria-labelledby="resume-desk-heading" hidden>
+          <div class="career-view-intro">
+            <div><span class="section-number">RÉSUMÉ STUDIO</span><h3 id="resume-desk-heading">Build the profile Scout can trust</h3></div>
+            <span id="resume-review-status" class="status-badge saved">Not reviewed</span>
           </div>
-        </div>
+          <section class="career-tool-card resume-desk">
+            <div class="resume-studio-grid">
+              <div>
+                <h4>Upload a grounded résumé</h4>
+                <p class="career-tool-copy">DOCX, TXT, or Markdown stays on this computer. Shepard critiques the evidence you supplied and converts only real skills and roles into a search profile.</p>
+                <form id="resume-upload-form" class="resume-upload-form">
+                  <label class="file-picker">Résumé file<input id="resume-file" type="file" accept=".docx,.txt,.md" required></label>
+                  <button id="resume-upload-button" class="primary-button" type="submit">Upload &amp; critique</button>
+                </form>
+                <div class="career-tool-meta"><span id="resume-filename">No uploaded résumé</span><button id="resume-review-button" class="text-button" type="button" disabled>Critique again</button></div>
+              </div>
+              <div class="resume-profile-card">
+                <span class="section-number">SEARCH PROFILE</span>
+                <p>Roles and skills extracted from the latest critique appear here. They guide Scout's ranking; they are not invented credentials.</p>
+                <div id="resume-search-profile" class="search-profile" hidden></div>
+              </div>
+            </div>
+            <details id="resume-critique-panel" class="critique-panel" hidden>
+              <summary>Read Shepard's full critique</summary>
+              <div id="resume-critique" class="message-body result-markdown"></div>
+            </details>
+          </section>
+        </section>
 
-        <form id="internship-intake-form" class="internship-intake-form">
-          <div class="intake-fields">
-            <label>Job title <span>optional</span><input id="internship-title" maxlength="200" placeholder="Shepard can extract this"></label>
-            <label>Company <span>optional</span><input id="internship-company" maxlength="200" placeholder="Shepard can extract this"></label>
-            <label>Deadline <span>optional</span><input id="internship-deadline" type="date"></label>
-            <label class="intake-notes">Notes <span>optional</span><textarea id="internship-notes" rows="2" maxlength="4000" placeholder="Location preference, questions, referral, or anything Shepard should consider"></textarea></label>
+        <section class="career-view" data-career-panel="import" aria-labelledby="career-import-heading" hidden>
+          <div class="career-view-intro">
+            <div><span class="section-number">BRING A POSTING</span><h3 id="career-import-heading">Turn one live page into an evidence review</h3></div>
+            <span id="resume-state" class="resume-state">Checking résumé…</span>
           </div>
-          <div class="intake-action">
-            <div><span id="resume-state" class="resume-state">Checking résumé…</span><small>Wayfinder → Scout → Scribe → Reviewer → Steward</small></div>
-            <button id="import-internship-button" class="primary-button" type="submit">Analyze shared job <span aria-hidden="true">↗</span></button>
+          <div class="internship-intake">
+            <div class="shared-job-card" id="shared-job-card">
+              <div class="shared-job-icon" aria-hidden="true">↗</div>
+              <div>
+                <span class="section-number">SHARED FROM CHROME</span>
+                <strong id="shared-job-title">Share a job page first</strong>
+                <a id="shared-job-url" href="#" target="_blank" rel="noopener noreferrer" hidden></a>
+                <p id="shared-job-state">Open one internship in Chrome, click the Shepard Bridge, and choose <b>Share current page</b>.</p>
+              </div>
+            </div>
+            <form id="internship-intake-form" class="internship-intake-form">
+              <div class="intake-fields">
+                <label>Job title <span>optional</span><input id="internship-title" maxlength="200" placeholder="Shepard can extract this"></label>
+                <label>Company <span>optional</span><input id="internship-company" maxlength="200" placeholder="Shepard can extract this"></label>
+                <label>Deadline <span>optional</span><input id="internship-deadline" type="date"></label>
+                <label class="intake-notes">Notes <span>optional</span><textarea id="internship-notes" rows="3" maxlength="4000" placeholder="Location preference, questions, referral, or anything Shepard should consider"></textarea></label>
+              </div>
+              <div class="intake-action">
+                <div><strong>Five-Sheep evidence route</strong><small>Wayfinder → Scout → Scribe → Reviewer → Steward</small></div>
+                <button id="import-internship-button" class="primary-button" type="submit">Analyze shared job <span aria-hidden="true">↗</span></button>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-
-      <div class="internship-workspace">
-        <div class="internship-list-shell">
-          <div class="subpanel-heading"><span>POSSIBILITIES</span><small id="internship-count">0 saved</small></div>
-          <div id="internships-list" class="internships-list" aria-live="polite"></div>
-        </div>
-        <div class="internship-detail-shell">
-          <div class="subpanel-heading"><span>APPLICATION TABLE</span><small>Always under your control</small></div>
-          <div id="internship-detail" class="internship-detail empty-state">
-            <div class="empty-glyph" aria-hidden="true">◎</div>
-            <h3>No internship selected</h3>
-            <p>Share a job page to start the five-Sheep review pipeline.</p>
-          </div>
-        </div>
+        </section>
       </div>
     </section>
 

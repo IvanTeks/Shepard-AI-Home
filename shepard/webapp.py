@@ -544,12 +544,11 @@ class ShepardHTTPServer(ThreadingHTTPServer):
             resume_text = settings.owner_profile_path.read_text(encoding="utf-8")
             latest_review = self.labyrinth.latest_resume_review() or {}
             search_terms = list(latest_review.get("search_terms") or [])
+            target_roles = list(latest_review.get("target_roles") or [])
             if not search_terms:
                 search_terms = fallback_search_terms(resume_text)
             query = str(search["query"])
             jobs = fetch_remotive_jobs(query)
-            if query.casefold() != "intern":
-                jobs.extend(fetch_remotive_jobs("intern"))
             jobs.extend(fetch_simplify_internships())
             jobs = list({str(item.get("url")): item for item in jobs}.values())
             saved_count = 0
@@ -559,6 +558,8 @@ class ShepardHTTPServer(ThreadingHTTPServer):
                     resume_text=resume_text,
                     search_terms=search_terms,
                     location=str(search.get("location") or ""),
+                    query=query,
+                    target_roles=target_roles,
                 )
                 if scored is None:
                     continue

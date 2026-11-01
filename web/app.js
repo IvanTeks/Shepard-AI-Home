@@ -2,6 +2,7 @@ const state = {
   jobs: [], agents: [], approvals: [], connectors: [], internships: [], searches: [], alarms: [],
   selectedJobId: null, selectedJob: null, selectedInternshipId: null, selectedInternship: null,
   resumeReady: false, resume: null, sharedJobPage: null,
+  careerView: "opportunities", internshipFilters: { query: "", stage: "all", sort: "match" },
   chat: [], chatBusy: false, mode: "labyrinth",
   weather: null, focusOpen: false, orbitPrevious: null, delegatedJobs: {}, ringingAlarm: null,
   gestures: { tracker: null, starting: false, hands: 0, mode: "idle" },
@@ -390,6 +391,53 @@ function renderMetrics() {
   $("#metric-approvals").textContent = pending;
 }
 
+function setCareerView(view, { focus = false } = {}) {
+  const allowed = new Set(["opportunities", "scout", "resume", "import"]);
+  const next = allowed.has(view) ? view : "opportunities";
+  state.careerView = next;
+  document.querySelectorAll("[data-career-view]").forEach((button) => {
+    const active = button.dataset.careerView === next;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  document.querySelectorAll("[data-career-panel]").forEach((panel) => {
+    const active = panel.dataset.careerPanel === next;
+    panel.hidden = !active;
+    panel.classList.toggle("active", active);
+  });
+  if (next !== "opportunities") $("#internships")?.classList.remove("career-detail-open");
+  if (focus) document.querySelector(`[data-career-panel="${next}"] h3`)?.focus?.();
+}
+
+function filteredInternships() {
+  const query = state.internshipFilters.query.trim().toLowerCase();
+  const stage = state.internshipFilters.stage;
+  const rows = state.internships.filter((item) => {
+    if (stage !== "all" && item.stage !== stage) return false;
+    if (!query) return true;
+    const haystack = [
+      item.title, item.source_title, item.company, item.location, item.match_summary, item.notes
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(query);
+  });
+  const timestamp = (value) => {
+    const parsed = Date.parse(value || "");
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const deadline = (value) => {
+    const parsed = Date.parse(value || "");
+    return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
+  };
+  rows.sort((left, right) => {
+    if (state.internshipFilters.sort === "updated") return timestamp(right.updated_at) - timestamp(left.updated_at);
+    if (state.internshipFilters.sort === "deadline") return deadline(left.deadline) - deadline(right.deadline);
+    if (state.internshipFilters.sort === "company") return String(left.company || "").localeCompare(String(right.company || ""));
+    const scoreDelta = Number(right.match_score ?? -1) - Number(left.match_score ?? -1);
+    return scoreDelta || timestamp(right.updated_at) - timestamp(left.updated_at);
+  });
+  return rows;
+}
+
 function renderResumeDesk() {
   const review = state.resume?.review || null;
   const status = review?.status || (state.resumeReady ? "ready" : "missing");
@@ -443,7 +491,6 @@ function renderInternshipSummary() {
   $("#internship-stat-total").textContent = state.internships.filter((item) => item.stage !== "archived").length;
   $("#internship-stat-ready").textContent = state.internships.filter((item) => activeStages.has(item.stage)).length;
   $("#internship-stat-applied").textContent = state.internships.filter((item) => ["applied", "interview", "offer"].includes(item.stage)).length;
-  $("#internship-count").textContent = `${state.internships.length} saved`;
   $("#resume-state").textContent = state.resumeReady ? "✓ Résumé ready" : "Résumé missing";
   $("#resume-state").classList.toggle("missing", !state.resumeReady);
   const shared = state.sharedJobPage;
@@ -468,11 +515,16 @@ function renderInternshipSummary() {
 function renderInternships() {
   const list = $("#internships-list");
   renderInternshipSummary();
-  if (!state.internships.length) {
-    list.innerHTML = '<div class="internship-empty"><strong>No opportunities yet</strong><p>Your first shared job will appear here with its match score and stage.</p></div>';
+  const visible = filteredInternships();
+  $("#internship-count").textContent = `${visible.length} of ${state.internships.length} shown`;
+  if (!visible.length) {
+    const hasFilters = Boolean(state.internshipFilters.query) || state.internshipFilters.stage !== "all";
+    list.innerHTML = hasFilters
+      ? '<div class="internship-empty"><strong>No matches in this view</strong><p>Try a broader search or choose a different stage.</p></div>'
+      : '<div class="internship-empty"><strong>The field is open</strong><p>Start Active Scout or bring Shepard a live job posting to plant the first opportunity.</p></div>';
     return;
   }
-  list.innerHTML = state.internships.map((item) => {
+  list.innerHTML = visible.map((item) => {
     const score = item.match_score === null || item.match_score === undefined ? "—" : item.match_score;
     const company = item.company || "Company not identified";
     const title = item.title || item.source_title || "Untitled opportunity";
@@ -486,6 +538,17 @@ function renderInternships() {
         </span>
       </button>`;
   }).join("");
+}
+
+async function refreshFilteredInternships() {
+  const visible = filteredInternships();
+  const selectedIsVisible = visible.some((item) => item.id === state.selectedInternshipId);
+  if (!selectedIsVisible) {
+    state.selectedInternshipId = visible[0]?.id || null;
+    state.selectedInternship = null;
+  }
+  renderInternships();
+  if (!selectedIsVisible) await loadInternship(state.selectedInternshipId);
 }
 
 function approvalStatusFor(item) {
@@ -1216,6 +1279,7 @@ $("#internship-intake-form").addEventListener("submit", async (event) => {
     $("#internship-intake-form").reset();
     toast("Five Sheep are reviewing the opportunity");
     await loadAll(true);
+    setCareerView("opportunities");
   } catch (error) {
     toast(error.message, true);
   } finally {
@@ -1230,6 +1294,31 @@ $("#internships-list").addEventListener("click", async (event) => {
   state.selectedInternshipId = card.dataset.internshipId;
   renderInternships();
   await loadInternship(state.selectedInternshipId);
+  $("#internships")?.classList.add("career-detail-open");
+});
+
+document.querySelectorAll("[data-career-view]").forEach((button) => {
+  button.addEventListener("click", () => setCareerView(button.dataset.careerView));
+});
+
+$("#internship-filter-query").addEventListener("input", (event) => {
+  state.internshipFilters.query = event.target.value;
+  refreshFilteredInternships();
+});
+
+$("#internship-filter-stage").addEventListener("change", (event) => {
+  state.internshipFilters.stage = event.target.value;
+  refreshFilteredInternships();
+});
+
+$("#internship-sort").addEventListener("change", (event) => {
+  state.internshipFilters.sort = event.target.value;
+  refreshFilteredInternships();
+});
+
+$("#career-mobile-back").addEventListener("click", () => {
+  $("#internships")?.classList.remove("career-detail-open");
+  $("#internship-filter-query")?.focus();
 });
 
 $("#internship-detail").addEventListener("click", async (event) => {

@@ -29,6 +29,18 @@ STOP_WORDS = {
     "can", "from", "have", "into", "more", "our", "that", "the", "their", "them",
     "they", "this", "through", "using", "was", "were", "will", "with", "work", "your",
     "experience", "skills", "education", "university", "college", "student",
+    "apply", "applicant", "intern", "internship", "job", "position", "preferred",
+    "required", "requirements", "role", "team",
+}
+ROLE_ALIASES = {
+    "dev": "development",
+    "develop": "development",
+    "developer": "development",
+    "developers": "development",
+    "engineer": "engineering",
+    "engineers": "engineering",
+    "programmer": "programming",
+    "programmers": "programming",
 }
 
 
@@ -120,6 +132,20 @@ def fallback_search_terms(resume_text: str, *, limit: int = 8) -> list[str]:
         labels.setdefault(key, token)
     ordered = sorted(counts, key=lambda item: (-counts[item], item))
     return [labels[item] for item in ordered[:limit]]
+
+
+def _meaningful_tokens(value: str) -> set[str]:
+    tokens: set[str] = set()
+    for raw in TOKEN_PATTERN.findall(value):
+        token = raw.casefold().strip(".-")
+        token = ROLE_ALIASES.get(token, token)
+        if len(token) >= 3 and token not in STOP_WORDS and not token.isdigit():
+            tokens.add(token)
+    return tokens
+
+
+def _location_preferences(value: str) -> list[str]:
+    return [item.casefold() for item in split_labels(value, limit=8)]
 
 
 class _HTMLTextParser:
@@ -225,6 +251,8 @@ def score_internship(
     resume_text: str,
     search_terms: list[str],
     location: str = "",
+    query: str = "",
+    target_roles: list[str] | None = None,
 ) -> tuple[int, str] | None:
     title = str(job.get("title", ""))
     description = str(job.get("description", ""))
@@ -235,24 +263,69 @@ def score_internship(
     terms = search_terms or fallback_search_terms(resume_text)
     matched = [term for term in terms if term.casefold() in combined]
     title_matches = [term for term in matched if term.casefold() in title.casefold()]
-    resume_tokens = {
-        token.casefold().strip(".-") for token in TOKEN_PATTERN.findall(resume_text)
-        if len(token) >= 3 and token.casefold().strip(".-") not in STOP_WORDS
-    }
-    job_tokens = {
-        token.casefold().strip(".-") for token in TOKEN_PATTERN.findall(combined)
-        if len(token) >= 3 and token.casefold().strip(".-") not in STOP_WORDS
-    }
+    resume_tokens = _meaningful_tokens(resume_text)
+    job_tokens = _meaningful_tokens(combined)
+    title_tokens = _meaningful_tokens(title)
     overlap = len(resume_tokens & job_tokens)
-    score = 38 + min(28, len(matched) * 5) + min(12, len(title_matches) * 4) + min(12, overlap // 2)
+
+    role_labels = [query, *(target_roles or [])]
+    role_labels = [value for value in role_labels if str(value).strip()]
+    role_fit = 0.0
+    best_role = ""
+    for label in role_labels:
+        role_tokens = _meaningful_tokens(str(label))
+        if not role_tokens:
+            continue
+        title_ratio = len(role_tokens & title_tokens) / len(role_tokens)
+        description_ratio = len(role_tokens & job_tokens) / len(role_tokens)
+        fit = max(title_ratio, description_ratio * 0.65)
+        if fit > role_fit:
+            role_fit = fit
+            best_role = str(label).strip()
+
+    score = 26
+    score += min(24, len(matched) * 6)
+    score += min(12, len(title_matches) * 6)
+    score += min(18, round(role_fit * 18))
+    score += min(10, overlap * 2)
+    if INTERNSHIP_WORDS.search(title):
+        score += 4
     if "SimplifyJobs" in source:
-        score += 10
-    if location and location.casefold() in str(job.get("location", "")).casefold():
-        score += 6
+        score += 4
+
+    evidence: list[str] = []
+    cautions: list[str] = []
+    if matched:
+        evidence.append("résumé signals: " + ", ".join(matched[:6]))
+    if role_fit >= 0.5 and best_role:
+        evidence.append(f'role alignment with "{best_role}"')
+    elif role_labels:
+        cautions.append("the title has weak alignment with your requested role")
+
+    preferences = _location_preferences(location)
+    job_location = str(job.get("location", "")).casefold().strip()
+    if preferences:
+        location_match = any(
+            preference in job_location
+            or (preference == "remote" and any(word in job_location for word in ("remote", "anywhere", "worldwide")))
+            for preference in preferences
+        )
+        if location_match:
+            score += 8
+            evidence.append("location preference matches")
+        else:
+            score -= 6
+            cautions.append("location does not clearly match your preferences")
+
     score = max(0, min(100, score))
-    evidence = ", ".join(matched[:6]) or "general résumé vocabulary"
+    if not evidence:
+        evidence.append("general résumé vocabulary only")
+    caution_copy = "; ".join(cautions) if cautions else "no obvious mismatch in the public listing"
     summary = (
-        f"Active Scout preliminary score: {score}/100. Matched signals: {evidence}. "
-        f"This is a local keyword ranking, not the full five-Sheep review. Source: {source or 'public job feed'}."
+        f"**Active Scout preliminary match: {score}/100**\n\n"
+        f"- **Why it surfaced:** {'; '.join(evidence)}.\n"
+        f"- **Check before advancing:** {caution_copy}.\n"
+        f"- **Source:** {source or 'public job feed'}.\n\n"
+        "This is a local evidence ranking, not the full five-Sheep review or an application decision."
     )
     return score, summary

@@ -1684,3 +1684,275 @@ html, body { overscroll-behavior: none; }
     max-width: none;
   }
 }
+
+/* Career Garden ------------------------------------------------------------
+   A four-station workspace that keeps opportunity triage calm and focused.
+   It borrows the Labyrinth's routes, glass, amber markers, and cyan signals
+   without turning career work into another dense dashboard. */
+.career-garden.internships-panel {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% -6%, rgba(245,185,66,.12), transparent 32%),
+    radial-gradient(circle at -4% 105%, rgba(69,190,177,.09), transparent 35%),
+    linear-gradient(145deg, rgba(12,18,29,.99), rgba(7,11,18,.995));
+}
+.career-garden::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  opacity: .1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(109,214,209,.7) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 80% 70%, rgba(245,185,66,.7) 0 1px, transparent 1.5px);
+  background-size: 42px 42px, 58px 58px;
+}
+.career-garden > .internship-heading {
+  flex: 0 0 auto;
+  align-items: flex-end;
+  padding: 70px var(--workspace-gutter) 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.025), transparent);
+}
+.career-heading-copy { min-width: 0; }
+.career-heading-copy h2 { margin-top: 5px; font-size: clamp(1.65rem, 3vw, 2.55rem); letter-spacing: -.055em; }
+.career-heading-copy p { max-width: 650px; margin: 7px 0 0; color: var(--muted); font-size: .78rem; }
+.career-garden .internship-stats { flex: 0 0 auto; }
+.career-garden .internship-stats span {
+  min-width: 82px;
+  border-color: rgba(109,214,209,.12);
+  border-radius: 12px;
+  background: rgba(4,8,14,.48);
+}
+.career-garden .internship-stats strong { color: var(--cyan); }
+
+.career-stations {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding: 0 var(--workspace-gutter);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, transparent, var(--line) 16%, var(--line) 84%, transparent);
+}
+.career-station {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  padding: 14px 16px 13px;
+  border: 0;
+  color: var(--quiet);
+  background: rgba(7,11,18,.9);
+  text-align: left;
+  cursor: pointer;
+}
+.career-station::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: -1px;
+  left: 14px;
+  height: 2px;
+  border-radius: 99px;
+  background: transparent;
+}
+.career-station > span { grid-row: 1 / 3; color: rgba(245,185,66,.5); font: 700 .58rem ui-monospace, monospace; letter-spacing: .08em; }
+.career-station strong { overflow: hidden; color: var(--muted); font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.career-station small { margin-top: 2px; overflow: hidden; font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
+.career-station:hover,
+.career-station:focus-visible { color: var(--muted); background: rgba(19,27,41,.92); outline: none; }
+.career-station.active { color: var(--muted); background: linear-gradient(180deg, rgba(109,214,209,.07), rgba(10,15,24,.96)); }
+.career-station.active > span,
+.career-station.active strong { color: var(--cyan); }
+.career-station.active::after { background: linear-gradient(90deg, var(--cyan), var(--amber)); }
+
+.career-views { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.career-view { height: 100%; min-height: 0; }
+.career-view.active { display: flex; flex-direction: column; animation: career-view-arrive .22s ease both; }
+.career-view[hidden] { display: none !important; }
+@keyframes career-view-arrive { from { opacity: .35; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.career-view-intro {
+  flex: 0 0 auto;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 14px var(--workspace-gutter);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.012);
+}
+.career-view-intro h3 { margin: 4px 0 0; font-size: 1.12rem; letter-spacing: -.025em; }
+.career-view-intro > p { max-width: 540px; margin: 0; color: var(--muted); font-size: .72rem; text-align: right; }
+
+.career-filter-bar {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(145px, .26fr) minmax(160px, .28fr);
+  gap: 10px;
+  padding: 12px var(--workspace-gutter);
+  border-bottom: 1px solid var(--line);
+}
+.career-filter-bar label { min-width: 0; display: grid; gap: 4px; color: var(--quiet); font: 650 .56rem ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.career-filter-bar input,
+.career-filter-bar select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  color: var(--text);
+  background: rgba(4,8,14,.7);
+  font: 500 .71rem system-ui, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.career-filter-bar input { padding: 0 12px 0 35px; }
+.career-filter-bar select { padding: 0 10px; }
+.career-filter-bar input:focus,
+.career-filter-bar select:focus { border-color: rgba(109,214,209,.55); box-shadow: 0 0 0 3px rgba(109,214,209,.05); }
+.career-search-field { position: relative; align-self: end; }
+.career-search-field > span[aria-hidden] { position: absolute; z-index: 1; bottom: 8px; left: 12px; color: var(--cyan); font: 1rem system-ui, sans-serif; }
+
+.career-garden .internship-workspace {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: minmax(300px, .7fr) minmax(460px, 1.3fr);
+  overflow: hidden;
+}
+.career-garden .internship-list-shell,
+.career-garden .internship-detail-shell { min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.career-garden .internships-list { flex: 1 1 auto; max-height: none; overflow: auto; scrollbar-width: thin; }
+.career-garden .internship-detail-shell { overflow: auto; }
+.career-garden .internship-detail { flex: 1 0 auto; min-height: 100%; padding: clamp(20px, 2.6vw, 32px); }
+.career-garden .subpanel-heading { flex: 0 0 auto; min-height: 43px; background: rgba(2,6,11,.34); }
+.career-mobile-back { display: none; border: 0; color: var(--amber); background: transparent; cursor: pointer; font-size: 1rem; }
+.career-garden .internship-card { position: relative; padding: 15px 17px; }
+.career-garden .internship-card::after { content: ""; position: absolute; right: 18px; bottom: 0; left: 82px; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+.career-garden .internship-card.selected { background: linear-gradient(90deg, rgba(109,214,209,.08), rgba(255,255,255,.018)); box-shadow: inset 2px 0 var(--cyan); }
+.career-garden .match-score { width: 46px; height: 46px; border-radius: 14px 14px 14px 4px; }
+.career-garden .internship-card-copy > strong { font-size: .82rem; }
+.career-garden .internship-report { max-height: min(50vh, 580px); }
+
+.scout-workspace {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(320px, .78fr) minmax(460px, 1.22fr);
+  gap: 1px;
+  overflow: auto;
+  background: var(--line);
+}
+.scout-workspace > * { min-width: 0; background: rgba(7,11,18,.97); }
+.scout-workspace .career-tool-card { padding: clamp(22px, 3vw, 38px); }
+.scout-workspace .career-tool-copy { margin-top: 0; font-size: .78rem; line-height: 1.55; }
+.scout-boundary { display: grid; grid-template-columns: auto 1fr; gap: 12px; margin-top: 22px; padding: 13px 14px; border: 1px solid rgba(109,214,209,.15); border-radius: 12px; background: rgba(109,214,209,.035); }
+.scout-boundary > span { color: var(--cyan); }
+.scout-boundary p { margin: 0; color: var(--muted); font-size: .69rem; line-height: 1.5; }
+.scout-boundary strong { color: var(--text); }
+.research-trails { padding: clamp(22px, 3vw, 38px); }
+.research-trails-heading h3 { margin: 5px 0 7px; font-size: 1.2rem; }
+.research-trails-heading p { max-width: 620px; margin: 0; color: var(--muted); font-size: .73rem; line-height: 1.5; }
+.research-source-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+.research-source {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: inherit;
+  background: linear-gradient(145deg, rgba(255,255,255,.025), rgba(255,255,255,.008));
+  text-decoration: none;
+  transition: border-color .18s ease, transform .18s ease, background .18s ease;
+}
+.research-source:hover,
+.research-source:focus-visible { border-color: rgba(245,185,66,.45); background: rgba(245,185,66,.045); outline: none; transform: translateY(-2px); }
+.research-source > span { color: var(--amber); font: 700 .58rem ui-monospace, monospace; letter-spacing: .09em; }
+.research-source strong { margin-top: 8px; font-size: .78rem; line-height: 1.35; }
+.research-source small { margin-top: 6px; color: var(--muted); font-size: .66rem; line-height: 1.4; }
+.research-source b { margin-top: auto; padding-top: 12px; color: var(--cyan); font-size: .65rem; }
+
+.career-view[data-career-panel="resume"],
+.career-view[data-career-panel="import"] { overflow: auto; }
+.career-view[data-career-panel="resume"] .career-tool-card { flex: 1 0 auto; padding: clamp(24px, 4vw, 48px); background: transparent; }
+.resume-studio-grid { display: grid; grid-template-columns: minmax(300px, 1fr) minmax(280px, .75fr); gap: clamp(22px, 4vw, 58px); align-items: start; }
+.resume-studio-grid h4 { margin: 0; font-size: 1.2rem; }
+.resume-profile-card { min-height: 190px; padding: 22px; border: 1px solid rgba(109,214,209,.15); border-radius: 16px; background: radial-gradient(circle at 100% 0, rgba(109,214,209,.07), transparent 44%), rgba(4,8,14,.48); }
+.resume-profile-card > p { margin: 9px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.55; }
+.resume-profile-card .search-profile { margin-top: 18px; }
+.career-view[data-career-panel="resume"] .critique-panel { margin-top: 28px; }
+.career-view[data-career-panel="resume"] .critique-panel .message-body { max-height: none; }
+.career-view[data-career-panel="import"] .internship-intake {
+  flex: 1 0 auto;
+  grid-template-columns: minmax(280px, .72fr) minmax(440px, 1.28fr);
+  align-items: start;
+  padding: clamp(24px, 4vw, 48px);
+  border: 0;
+  background: transparent;
+}
+.career-view[data-career-panel="import"] .shared-job-card { min-height: 100%; }
+
+@media (max-width: 920px) {
+  .career-garden > .internship-heading { align-items: flex-start; }
+  .career-heading-copy p { display: none; }
+  .career-garden .internship-stats { gap: 5px; }
+  .career-garden .internship-stats span { min-width: 62px; padding: 7px 8px; }
+  .career-stations { overflow-x: auto; grid-template-columns: repeat(4, minmax(155px, 1fr)); padding-inline: 0; scrollbar-width: none; }
+  .career-stations::-webkit-scrollbar { display: none; }
+  .career-filter-bar { grid-template-columns: minmax(210px, 1fr) repeat(2, minmax(125px, .32fr)); }
+  .career-garden .internship-workspace { grid-template-columns: minmax(270px, .82fr) minmax(390px, 1.18fr); }
+  .scout-workspace { grid-template-columns: 1fr; }
+  .resume-studio-grid { grid-template-columns: 1fr; }
+  .career-view[data-career-panel="import"] .internship-intake { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .career-garden > .internship-heading { padding: 66px var(--workspace-gutter) 15px; }
+  .career-heading-copy h2 { font-size: 1.55rem; }
+  .career-garden .internship-stats { width: 100%; }
+  .career-garden .internship-stats span { flex: 1; }
+  .career-view-intro { min-height: 64px; padding-block: 11px; }
+  .career-view-intro > p { display: none; }
+  .career-filter-bar { grid-template-columns: 1fr 1fr; }
+  .career-search-field { grid-column: 1 / -1; }
+  .career-garden .internship-workspace { grid-template-columns: 1fr; }
+  .career-garden .internship-detail-shell { display: none; }
+  .career-garden.career-detail-open .internship-list-shell { display: none; }
+  .career-garden.career-detail-open .internship-detail-shell { display: flex; }
+  .career-mobile-back { display: inline-grid; place-items: center; }
+  .career-garden .internship-detail { padding: 18px; }
+  .internship-detail-header h3 { font-size: 1.12rem; }
+  .detail-score strong { font-size: 1.8rem; }
+  .internship-facts { grid-template-columns: 1fr; }
+  .internship-route { grid-template-columns: 1fr 1fr; }
+  .internship-route > .section-number { grid-column: 1 / -1; }
+  .active-scout-form { grid-template-columns: 1fr; }
+  .active-scout-form .primary-button { grid-column: auto; }
+  .research-source-grid { grid-template-columns: 1fr; }
+  .research-source { min-height: 132px; }
+  .resume-upload-form { grid-template-columns: 1fr; }
+  .intake-fields { grid-template-columns: 1fr; }
+  .intake-notes { grid-column: auto; }
+  .intake-action { align-items: stretch; flex-direction: column; }
+  .intake-action .primary-button { width: 100%; }
+}
+
+@media (max-height: 620px) {
+  .career-garden > .internship-heading { padding-top: 62px; padding-bottom: 10px; }
+  .career-heading-copy p { display: none; }
+  .career-station { padding-block: 9px; }
+  .career-view-intro { min-height: 54px; padding-block: 8px; }
+  .career-filter-bar { padding-block: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .career-view.active { animation: none; }
+  .research-source { transition: none; }
+}
