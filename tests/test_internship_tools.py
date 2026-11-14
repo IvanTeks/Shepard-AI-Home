@@ -10,13 +10,13 @@ class InternshipToolsTests(unittest.TestCase):
         buffer = io.BytesIO()
         document = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-          <w:body><w:p><w:r><w:t>Ivan Tekenah</w:t></w:r></w:p>
+          <w:body><w:p><w:r><w:t>Avery Student</w:t></w:r></w:p>
           <w:p><w:r><w:t>Software student with Python, Java, SQL, and project experience building reliable applications.</w:t></w:r></w:p></w:body>
         </w:document>"""
         with zipfile.ZipFile(buffer, "w") as archive:
             archive.writestr("word/document.xml", document)
         text = extract_resume_text("resume.docx", buffer.getvalue())
-        self.assertIn("Ivan Tekenah", text)
+        self.assertIn("Avery Student", text)
         self.assertIn("Python", text)
 
     def test_scores_only_internship_like_jobs(self):

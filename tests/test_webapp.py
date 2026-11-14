@@ -364,7 +364,7 @@ class WebAppTests(unittest.TestCase):
             return None
 
         resume_text = (
-            "Ivan Tekenah\nSoftware student with Python, Java, SQL, web development, "
+            "Avery Student\nSoftware student with Python, Java, SQL, web development, "
             "team projects, technical writing, and application development experience."
         )
         with mock.patch(
