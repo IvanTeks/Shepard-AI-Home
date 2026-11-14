@@ -33,6 +33,7 @@ This is the human-readable map of Shepard's repository. Standard technical filen
 | `shepard/database.py` | Stores jobs, messages, approvals, alarms, internships, and results. |
 | `shepard/desktop.py` | Optional native desktop control-center window. |
 | `shepard/internship_tools.py` | Résumé reading, internship scoring, and job-matching helpers. |
+| `shepard/market_tools.py` | Collects Hen's public watchlist metrics and IPO-calendar evidence without placing trades. |
 | `shepard/models.py` | Shared data models used by the Labyrinth. |
 | `shepard/ollama.py` | Connects Shepard and local Sheep to Ollama. |
 | `shepard/providers.py` | Connects selected Sheep to Gemini or Claude APIs. |
@@ -48,6 +49,7 @@ This is the human-readable map of Shepard's repository. Standard technical filen
 | `web/app.js` | Main browser logic, API calls, UI interactions, and state. |
 | `web/labyrinth-scene.js` | Circular maze projection and three-dimensional scene behavior. |
 | `web/hand-controls.js` | Camera-based five-finger hand tracking and gesture controls. |
+| `web/voice-controller.js` | Push-to-talk dictation, transcript review, spoken replies, and voice interruption. |
 | `web/file-redirect.js` | Redirects accidental raw-file launches to the local Shepard server. |
 | `web/sw.js` | Browser cache and offline-shell behavior. |
 | `web/manifest.webmanifest` | Installable web-app name, colors, and icon settings. |
@@ -83,6 +85,7 @@ This is the human-readable map of Shepard's repository. Standard technical filen
 | `tests/test_config.py` | Configuration and Sheep customization safety. |
 | `tests/test_database.py` | Persistence of jobs, approvals, alarms, and internships. |
 | `tests/test_internship_tools.py` | Résumé extraction and internship scoring. |
+| `tests/test_market_tools.py` | Hen's price metrics, scope labels, and IPO-verification warnings. |
 | `tests/test_providers.py` | Gemini and Claude provider behavior. |
 | `tests/test_runtime.py` | Multi-Sheep delegation and private-data boundaries. |
 | `tests/test_webapp.py` | Website APIs, connections, approvals, browser bridge, and uploads. |

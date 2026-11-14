@@ -1,0 +1,22 @@
+{
+  "price_cap_usd": 50,
+  "symbols": [
+    "AAL",
+    "BAC",
+    "CCL",
+    "CSCO",
+    "F",
+    "HIMS",
+    "HOOD",
+    "INTC",
+    "NIO",
+    "PFE",
+    "RIVN",
+    "SCHD",
+    "SLV",
+    "SNAP",
+    "SOFI",
+    "T",
+    "VZ"
+  ]
+}

@@ -67,6 +67,13 @@ def build_parser() -> argparse.ArgumentParser:
     council = sub.add_parser("council", help="Gather every Sheep for the weekly improvement council")
     council.add_argument("--json", action="store_true", help="Print the result as JSON")
 
+    market = sub.add_parser("market-briefing", help="Run Hen's evidence-audited market watch")
+    market.add_argument("--json", action="store_true", help="Print the result as JSON")
+    market.add_argument(
+        "--evidence-file",
+        help="Optional UTF-8 evidence packet; otherwise Hen collects the configured free public feeds",
+    )
+
     jobs = sub.add_parser("jobs", help="List recent jobs")
     jobs.add_argument("--limit", type=int, default=20)
 
@@ -170,6 +177,24 @@ def main(argv: Sequence[str] | None = None) -> int:
                 }, indent=2))
             else:
                 print(f"Council job: {result.job_id}")
+                print(f"Status: {result.status}\n")
+                print(result.final_output)
+            return 0
+
+        if args.command == "market-briefing":
+            evidence = (
+                Path(args.evidence_file).expanduser().read_text(encoding="utf-8")
+                if args.evidence_file else None
+            )
+            result = ShepardRuntime(settings, labyrinth=db).run_market_briefing(evidence=evidence)
+            if args.json:
+                print(json.dumps({
+                    "job_id": result.job_id,
+                    "status": result.status,
+                    "final_output": result.final_output,
+                }, indent=2))
+            else:
+                print(f"Hen market job: {result.job_id}")
                 print(f"Status: {result.status}\n")
                 print(result.final_output)
             return 0

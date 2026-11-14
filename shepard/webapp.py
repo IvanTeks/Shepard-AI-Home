@@ -386,14 +386,24 @@ class ShepardHTTPServer(ThreadingHTTPServer):
         )
         self.queue_internship_search(search_id)
 
-    def start_job(self, goal: str) -> str:
+    def start_job(self, goal: str, *, specialist_id: str | None = None) -> str:
         settings = load_settings(self.config_path)
+        if specialist_id:
+            settings.agent(specialist_id)
         job_id = self.labyrinth.create_job(goal)
 
         def worker() -> None:
             with self.runtime_lock:
                 runtime = ShepardRuntime(settings, labyrinth=self.labyrinth)
-                runtime.run(goal, job_id=job_id)
+                try:
+                    if specialist_id == "hen":
+                        runtime.run_market_briefing(job_id=job_id, owner_request=goal)
+                    elif specialist_id:
+                        runtime.run(goal, job_id=job_id, specialist_id=specialist_id)
+                    else:
+                        runtime.run(goal, job_id=job_id)
+                except Exception as exc:
+                    self.labyrinth.update_job(job_id, status="failed", error=str(exc))
 
         threading.Thread(target=worker, name=f"shepard-{job_id}", daemon=True).start()
         return job_id
@@ -802,6 +812,7 @@ class ShepardRequestHandler(BaseHTTPRequestHandler):
             "index.html": "index.html",
             "styles.css": "styles.css",
             "app.js": "app.js",
+            "voice-controller.js": "voice-controller.js",
             "labyrinth-scene.js": "labyrinth-scene.js",
             "hand-controls.js": "hand-controls.js",
             "file-redirect.js": "file-redirect.js",
@@ -1341,11 +1352,17 @@ class ShepardRequestHandler(BaseHTTPRequestHandler):
                     "Never claim to have accessed an account, sent a message, changed a calendar, applied "
                     "for a role, controlled a device, or completed any external action unless the system "
                     "explicitly provides evidence that it happened. Sensitive external actions require "
-                    "the owner's approval. Return one JSON object with keys reply, delegate, and goal. "
-                    "reply is your useful answer to the owner. delegate is true only when the request needs "
-                    "multi-step work from specialist Sheep; keep it false for ordinary questions. goal is a "
+                    "the owner's approval. Return one JSON object with keys reply, delegate, goal, and sheep_id. "
+                    "Route requests matching a registered Sheep's specialty to that Sheep, even for a single question. "
+                    "sheep_id is that Sheep's exact registered id, or null for general conversation. "
+                    "Do not invent a Sheep's response: the runtime will contact them. "
+                    "reply is your useful answer to the owner. delegate is true when specialist or multi-step work is needed. goal is a "
                     "concise job goal when delegate is true, otherwise an empty string. Do not include markdown "
                     "outside the JSON object."
+                    + " Registered Sheep: " + json.dumps([
+                        {"id": agent.id, "name": agent.name, "role": agent.role}
+                        for agent in settings.sheep
+                    ])
                     + page_context
                     + outlook_guidance
                 )
@@ -1358,20 +1375,37 @@ class ShepardRequestHandler(BaseHTTPRequestHandler):
                     num_predict=1400,
                 )
                 job_id = None
+                specialist_id = None
                 try:
                     decision = json.loads(raw_reply)
                     reply = str(decision.get("reply", "")).strip() or "I’m ready."
                     delegate = bool(decision.get("delegate", False))
                     goal = str(decision.get("goal", "")).strip()
+                    candidate = decision.get("sheep_id")
+                    if isinstance(candidate, str) and candidate in {agent.id for agent in settings.sheep}:
+                        specialist_id = candidate
                 except (json.JSONDecodeError, AttributeError, TypeError):
                     reply, delegate, goal = raw_reply, False, ""
+                for agent in settings.sheep:
+                    if re.search(r"(?<!\w)@(?:" + re.escape(agent.id) + "|" + re.escape(agent.name) + r")(?!\w)", last_user_message, re.I):
+                        specialist_id = agent.id
+                        break
+                if not specialist_id and re.search(r"\b(stocks?|stock\s+mart?ket|ipo)\b", last_user_message, re.I):
+                    if any(agent.id == "hen" for agent in settings.sheep):
+                        specialist_id = "hen"
+                if specialist_id:
+                    delegate = True
+                    goal = last_user_message
+                    specialist = settings.agent(specialist_id)
+                    reply = f"@{specialist.name}, please help with this: {last_user_message}"
                 if delegate and goal:
                     if pages:
                         evidence = BROWSER_EVIDENCE_MARKER + "\n\n".join(
                             f"{page['title']} ({page['url']}):\n{page['text'][:6000]}" for page in pages
                         )
                         goal = (goal + evidence)[:20_000]
-                    job_id = self.server.start_job(goal)
+                    job_id = (self.server.start_job(goal, specialist_id=specialist_id)
+                              if specialist_id else self.server.start_job(goal))
                 self._json({
                     "reply": reply,
                     "model": shepard.model,

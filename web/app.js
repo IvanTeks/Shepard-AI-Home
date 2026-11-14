@@ -13,6 +13,7 @@ let handControlsModulePromise = null;
 let labyrinthScene = null;
 let labyrinthScenePromise = null;
 let alarmAudioContext = null;
+let voiceController = null;
 const loadHandControlsModule = () => {
   if (!handControlsModulePromise) handControlsModulePromise = import("/hand-controls.js?v=4");
   return handControlsModulePromise;
@@ -21,6 +22,15 @@ const loadLabyrinthScene = () => {
   if (!labyrinthScenePromise) labyrinthScenePromise = import("/labyrinth-scene.js?v=22");
   return labyrinthScenePromise;
 };
+async function startVoiceStation() {
+  try {
+    const { ShepardVoiceController } = await import("/voice-controller.js?v=1");
+    voiceController = new ShepardVoiceController({ onNotice: toast });
+    voiceController.attach();
+  } catch (error) {
+    console.warn("Shepard's voice station could not start.", error);
+  }
+}
 
 // Mobile browsers and split-screen windows change the *visible* frame without
 // always updating 100vh. Keep one authoritative height in CSS so the world,
@@ -203,6 +213,8 @@ function loadStoredChat() {
     ).map((message) => ({
       role: message.role,
       content: message.content,
+      speaker: typeof message.speaker === "string" ? message.speaker : undefined,
+      messageId: typeof message.messageId === "string" ? message.messageId : undefined,
       sources: Array.isArray(message.sources) ? message.sources.filter((source) =>
         source && typeof source.title === "string" && /^https?:\/\//.test(source.url || "")
       ).slice(0, 2) : []
@@ -713,11 +725,11 @@ function renderLabyrinth() {
   const domains = [];
   const defaultDomains = {
     scout: "Northreach", scribe: "Scriptorium", builder: "Forge",
-    reviewer: "Watchtower", steward: "Chronicle", browser: "Waystation"
+    reviewer: "Watchtower", steward: "Chronicle", browser: "Waystation", hen: "Market Roost"
   };
   const defaultBuildings = {
     scout: "farm", scribe: "scriptorium", builder: "forge",
-    reviewer: "tower", steward: "keep", browser: "tower"
+    reviewer: "tower", steward: "keep", browser: "tower", hen: "farm"
   };
   const buildingCycle = ["farm", "scriptorium", "forge", "tower", "keep"];
   const outerCount = sheep.length <= 8 ? sheep.length : Math.min(9, Math.ceil(sheep.length / 2));
@@ -770,8 +782,8 @@ function renderChat() {
   }];
   const markup = messages.map((message) => `
     <article class="chat-message ${escapeHTML(message.role)}">
-      <span class="message-avatar">${message.role === "user" ? "YOU" : "S"}</span>
-      <div><small>${message.role === "user" ? "You" : "Shepard"}</small><div class="message-body">${renderMarkdown(message.content)}</div>${Array.isArray(message.sources) && message.sources.length ? `
+      <span class="message-avatar">${message.role === "user" ? "YOU" : escapeHTML((message.speaker || "Shepard").slice(0, 1))}</span>
+      <div><small>${message.role === "user" ? "You" : escapeHTML(message.speaker || "Shepard")}</small><div class="message-body">${renderMarkdown(message.content)}</div>${Array.isArray(message.sources) && message.sources.length ? `
         <div class="message-sources">${message.sources.map((source) => `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">Open ${escapeHTML(source.title || "source")} ↗</a>`).join("")}</div>` : ""}</div>
     </article>`).join("") + (state.chatBusy ? `
     <article class="chat-message assistant thinking" id="chat-thinking">
@@ -1050,14 +1062,28 @@ async function loadHealth() {
   }
 }
 
-async function loadJob(jobId) {
+async function loadJob(jobId, select = true) {
   if (!jobId) return;
   try {
-    state.selectedJob = await api(`/api/jobs/${encodeURIComponent(jobId)}`);
-    renderJobDetail();
-    if (state.selectedJob.status === "completed" && state.delegatedJobs[jobId] === "pending") {
-      const result = (state.selectedJob.final_output || "The delegated work finished without a written result.").slice(0, 20000);
-      state.chat.push({ role: "assistant", content: `The Sheep have returned to the roots with their result:\n\n${result}` });
+    const job = await api(`/api/jobs/${encodeURIComponent(jobId)}`);
+    if (select) {
+      state.selectedJob = job;
+      renderJobDetail();
+    }
+    if (state.delegatedJobs[jobId] === "pending") {
+      for (const message of job.messages || []) {
+        if (message.kind !== "result" || state.chat.some((item) => item.messageId === message.id)) continue;
+        const speaker = state.agents.find((agent) => agent.id === message.sender)?.name || message.sender;
+        state.chat.push({ role: "assistant", speaker, content: message.content, messageId: message.id });
+      }
+      storeChat();
+      renderChat();
+    }
+    if (["completed", "failed", "waiting_approval"].includes(job.status) && state.delegatedJobs[jobId] === "pending") {
+      const result = job.status === "failed"
+        ? `The delegated work could not finish: ${job.error || "Unknown error"}`
+        : (job.final_output || "The delegated work is waiting for approval.").slice(0, 20000);
+      state.chat.push({ role: "assistant", content: result });
       state.delegatedJobs[jobId] = "delivered";
       storeChat();
       renderChat();
@@ -1093,6 +1119,9 @@ async function loadAll(silent = false) {
     renderResumeDesk(); renderActiveScout();
     renderAlarms(); checkAlarms();
     if (state.selectedJobId) await loadJob(state.selectedJobId);
+    for (const [jobId, status] of Object.entries(state.delegatedJobs)) {
+      if (status === "pending" && jobId !== state.selectedJobId) await loadJob(jobId, false);
+    }
     await loadInternship(state.selectedInternshipId);
     if (!silent) toast("Labyrinth refreshed");
   } catch (error) {
@@ -1527,6 +1556,7 @@ async function sendChat(input) {
   if (state.chatBusy) return;
   const content = input.value.trim();
   if (!content) return;
+  voiceController?.stopListening();
   state.chat.push({ role: "user", content });
   input.value = "";
   state.chatBusy = true;
@@ -1535,8 +1565,12 @@ async function sendChat(input) {
   $("#chat-send-button").disabled = true;
   $("#focus-chat-send").disabled = true;
   try {
-    const result = await api("/api/chat", { method: "POST", body: { messages: state.chat.slice(-24) } });
+    const messages = state.chat.slice(-24).map(({ role, content, speaker }) => ({
+      role, content: speaker ? `${speaker}: ${content}` : content
+    }));
+    const result = await api("/api/chat", { method: "POST", body: { messages } });
     state.chat.push({ role: "assistant", content: result.reply, sources: result.sources || [] });
+    voiceController?.speak(result.reply);
     if (result.job_id) {
       state.selectedJobId = result.job_id;
       state.delegatedJobs[result.job_id] = "pending";
@@ -1564,7 +1598,10 @@ function bindChatForm(formSelector, inputSelector) {
     sendChat(input);
   });
   input.addEventListener("keydown", (event) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") form.requestSubmit();
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
   });
 }
 
@@ -1912,6 +1949,7 @@ renderChat();
 setMode(state.mode);
 applyOrbit();
 startLabyrinthScene();
+startVoiceStation();
 setTimeSky();
 requestWeather();
 loadHealth();

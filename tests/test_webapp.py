@@ -85,6 +85,14 @@ class WebAppTests(unittest.TestCase):
         self.assertIn("class ShepardLabyrinthScene", body)
         self.assertIn("positionBillboards", body)
 
+    def test_voice_controller_is_served_as_javascript(self):
+        with urllib.request.urlopen(self.base_url + "/voice-controller.js", timeout=3) as response:
+            body = response.read().decode("utf-8")
+            self.assertEqual(response.status, 200)
+            self.assertIn("javascript", response.headers.get_content_type())
+        self.assertIn("class ShepardVoiceController", body)
+        self.assertIn("speechSynthesis", body)
+
     def test_alarm_api_creates_lists_fires_and_snoozes(self):
         scheduled = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
         status, alarm = self.request("/api/alarms", {
@@ -251,6 +259,32 @@ class WebAppTests(unittest.TestCase):
             self.request("/api/chat", {"messages": []})
         self.assertEqual(error.exception.code, 400)
         error.exception.close()
+
+    def test_chat_routes_market_request_to_hen(self):
+        with mock.patch("shepard.webapp.chat_with_model", return_value='{"reply":"Hello", "delegate":false}'), mock.patch.object(self.server, "start_job", return_value="job-hen") as start:
+            status, result = self.request("/api/chat", {
+                "messages": [{"role": "user", "content": "Check the stock martket for me"}]
+            })
+        self.assertEqual(status, 200)
+        self.assertIn("@Hen", result["reply"])
+        self.assertEqual(result["job_id"], "job-hen")
+        start.assert_called_once_with("Check the stock martket for me", specialist_id="hen")
+
+    def test_chat_routes_single_question_to_registered_specialist(self):
+        with mock.patch("shepard.webapp.chat_with_model", return_value='{"reply":"I will ask", "sheep_id":"scribe"}'), mock.patch.object(self.server, "start_job", return_value="job-scribe") as start:
+            _, result = self.request("/api/chat", {
+                "messages": [{"role": "user", "content": "Help me draft a cover letter"}]
+            })
+        self.assertIn("@Scribe", result["reply"])
+        start.assert_called_once_with("Help me draft a cover letter", specialist_id="scribe")
+
+    def test_chat_unknown_specialist_does_not_start_job(self):
+        with mock.patch("shepard.webapp.chat_with_model", return_value='{"reply":"Hello", "sheep_id":"invented"}'), mock.patch.object(self.server, "start_job") as start:
+            _, result = self.request("/api/chat", {
+                "messages": [{"role": "user", "content": "Hello"}]
+            })
+        self.assertIsNone(result["job_id"])
+        start.assert_not_called()
 
     def test_web_reader_rejects_private_network_urls(self):
         with self.assertRaisesRegex(ValueError, "private network"):

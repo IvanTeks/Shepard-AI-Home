@@ -9,7 +9,7 @@
   <script src="./file-redirect.js"></script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/styles.css?v=29">
+  <link rel="stylesheet" href="/styles.css?v=30">
 </head>
 <body>
   <button id="world-menu-button" class="world-menu-button" type="button" aria-controls="world-menu" aria-expanded="false">
@@ -142,6 +142,7 @@
           <form id="focus-chat-form" class="focus-chat-form">
             <label class="sr-only" for="focus-chat-input">Ask Shepard at the roots</label>
             <textarea id="focus-chat-input" rows="2" maxlength="12000" placeholder="Ask Shepard—or paste a webpage URL…" required></textarea>
+            <button class="voice-mic-button" type="button" data-voice-mic data-voice-target="#focus-chat-input" aria-label="Dictate a message to Shepard" aria-pressed="false"><span aria-hidden="true">●</span><b>Speak</b></button>
             <button id="focus-chat-send" class="primary-button" type="submit" aria-label="Send to Shepard">Send <span aria-hidden="true">↗</span></button>
           </form>
         </section>
@@ -156,7 +157,7 @@
           <label class="sr-only" for="goal-input">Goal for Shepard</label>
           <textarea id="goal-input" name="goal" rows="6" maxlength="10000" placeholder="Find software internships that match my background and prepare the application materials…" required></textarea>
           <div class="goal-footer">
-            <span><kbd>⌘</kbd> <kbd>Enter</kbd></span>
+            <span><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for a new line</span>
             <button id="dispatch-button" class="primary-button" type="submit">
               <span>Ask the flock</span><span aria-hidden="true">↗</span>
             </button>
@@ -369,6 +370,12 @@
           <span>STAYS AT HOME</span>
           <p>Chat stays on this computer. Paste a public webpage URL and Scout can safely read it. Account actions still require a connector and approval.</p>
         </div>
+        <section class="voice-station" aria-labelledby="voice-station-heading">
+          <div><span class="section-number">VOICE STATION</span><strong id="voice-station-heading">Speak with Shepard</strong></div>
+          <button id="voice-auto-speak" class="voice-auto-speak" type="button" aria-pressed="false"><span aria-hidden="true">◌</span><b>Read replies</b><small>Off</small></button>
+          <p id="voice-status" role="status">Press Speak to dictate. Your raw words are placed in the message box for review before sending.</p>
+          <small class="voice-privacy-note">Dictation uses your browser's speech service and may be processed by its provider. Read-aloud uses the voice installed on this device.</small>
+        </section>
         <button id="clear-chat-button" class="ghost-button" type="button">Clear conversation</button>
       </div>
       <div class="chat-main">
@@ -381,8 +388,9 @@
         <form id="chat-form" class="chat-composer">
           <label class="sr-only" for="chat-input">Message Shepard</label>
           <textarea id="chat-input" rows="2" maxlength="12000" placeholder="Message Shepard…" required></textarea>
+          <button class="voice-mic-button" type="button" data-voice-mic data-voice-target="#chat-input" aria-label="Dictate a message to Shepard" aria-pressed="false"><span aria-hidden="true">●</span><b>Speak</b></button>
           <button id="chat-send-button" class="primary-button" type="submit" aria-label="Send message">Send <span aria-hidden="true">↗</span></button>
-          <span class="chat-shortcut"><kbd>⌘</kbd> <kbd>Enter</kbd> to send</span>
+          <span class="chat-shortcut"><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for a new line</span>
         </form>
       </div>
     </section>
@@ -527,6 +535,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/app.js?v=29" defer></script>
+  <script src="/app.js?v=30" defer></script>
 </body>
 </html>

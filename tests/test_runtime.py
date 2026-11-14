@@ -132,6 +132,31 @@ class RuntimeTests(unittest.TestCase):
             self.assertTrue(all(task["status"] == "completed" for task in job["tasks"]))
             self.assertEqual(len(fake.calls), len(settings.sheep) + 1)
 
+    def test_market_briefing_routes_hen_through_independent_review(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = json.loads(Path("config/default.json").read_text(encoding="utf-8"))
+            raw["shepard"]["model"] = "qwen3:8b"
+            for profile in raw["sheep"]:
+                profile["model"] = "qwen3:8b"
+            config_path = root / "config.json"
+            config_path.write_text(json.dumps(raw), encoding="utf-8")
+            settings = load_settings(config_path)
+            db = Labyrinth(root / "labyrinth.db")
+            fake = CouncilOllama()
+            evidence = (
+                "Collected: 2026-11-10T14:00:00+00:00\n"
+                "| F | 2026-11-09 | $12.00 | source=https://example.test/f |"
+            )
+            result = ShepardRuntime(settings, labyrinth=db, ollama=fake).run_market_briefing(
+                evidence=evidence
+            )
+            job = db.get_job(result.job_id)
+            self.assertEqual([task["sheep_id"] for task in job["tasks"]], ["hen", "reviewer"])
+            self.assertTrue(all(task["status"] == "completed" for task in job["tasks"]))
+            self.assertIn("not a trade instruction", result.final_output)
+            self.assertIn("CURRENT PUBLIC EVIDENCE", fake.calls[0]["messages"][-1]["content"])
+
     def test_goal_runs_through_multiple_sheep(self):
         with tempfile.TemporaryDirectory() as directory:
             settings = load_settings()

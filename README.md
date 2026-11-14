@@ -36,6 +36,8 @@ Account connectors and device control come after this foundation is tested.
 - Résumé Studio accepts local DOCX, TXT, and Markdown uploads, produces a Scout + Reviewer critique, and derives grounded role and keyword suggestions.
 - Active Scout checks Remotive's public remote-job API and the public SimplifyJobs/Pitt CSC internship registry on a schedule while Shepard is open. Its local evidence score weighs requested-role alignment, grounded résumé signals, and comma-separated location preferences before saving discoveries for owner review.
 - Research Trails links to official NSF REU, USAJOBS Early Careers, NASA internship, and ORISE undergraduate portals for owner-led research without claiming automated access those services do not provide.
+- Shepard's Voice Station provides push-to-talk dictation, review-before-send transcripts, optional spoken replies, and barge-in that stops speech when the microphone starts. Dictation never bypasses the Gatekeeper or submits a message automatically.
+- Hen is a market-research Sheep with an evidence-locked two-day watchlist briefing, a configurable $50 price ceiling, IPO-calendar signals that require SEC verification, and an independent Reviewer pass. Hen cannot place trades or promise returns.
 - No third-party Python packages are required.
 
 The tiny domain-building sprites are adapted from Shade's CC0 MiniWorld Sprites;
@@ -79,6 +81,20 @@ only Sheep assigned to active work leave their domain and travel to the roots.
 Tap the central Shepard tree for the in-world chat, or use the mode switch for
 the full chat room. Paste a public `http://` or `https://` URL into either chat
 when you want Shepard to read that page.
+
+## Use Shepard's voice
+
+Open the roots chat or full chat room and press **Speak**. Shepard places the
+raw transcript in the message box so you can correct it before choosing
+**Send**; dictation never auto-submits a request or skips an approval. Turn on
+**Read replies** in the Voice Station when you want Shepard to speak completed
+answers aloud. Starting the microphone while Shepard is speaking stops the
+current voice so you can interrupt naturally.
+
+This first voice bridge is free and needs no API key. Read-aloud uses the
+device's installed system voice. Dictation uses the browser speech-recognition
+service and, depending on the browser, audio may be processed by the browser
+provider. It is therefore not the same as an offline Whisper installation.
 
 ## Connect Claude
 
@@ -177,6 +193,27 @@ python3 -m shepard council
 
 The dashboard's **Gather council** button starts the same process. While it is
 active, every Sheep travels to the center of the Labyrinth.
+
+## Run Hen's market watch
+
+Hen scans the configured watchlist, filters securities whose latest collected
+closing price is at or below the owner's price cap, adds descriptive price,
+volatility, drawdown, and volume measurements, and records Nasdaq IPO-calendar
+signals for follow-up. Change the cap and symbols in
+`config/market-watchlist.json`, then run:
+
+```bash
+python3 -m shepard market-briefing
+```
+
+The current price feed is an unofficial, no-key Yahoo Finance chart endpoint
+that can change or be delayed. The IPO feed is Nasdaq's public calendar. An IPO
+calendar entry is never treated as confirmation: Hen requires the related SEC
+S-1/F-1, amendments, and final prospectus to be checked. The watchlist is not
+the whole market, a share price under $50 does not make a company inexpensive,
+and fractional shares may make higher-priced securities accessible. Hen's
+briefing is research, not personalized financial advice; it never places an
+order and no result is guaranteed.
 
 ## Connect Google Calendar
 

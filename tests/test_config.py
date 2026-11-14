@@ -20,6 +20,7 @@ class ConfigTests(unittest.TestCase):
             {"browser.read", "browser.navigate", "browser.submit"},
         )
         self.assertIn("browser.submit", settings.approval_required)
+        self.assertIn("market.research", settings.agent("hen").capabilities)
 
     def test_persona_update_does_not_change_capabilities(self):
         with tempfile.TemporaryDirectory() as directory:

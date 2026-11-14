@@ -40,6 +40,7 @@ export class ShepardLabyrinthScene {
     this.particles = this.buildParticles(124);
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.stage);
+    this.resizeObserver.observe(this.stage.closest(".labyrinth-visual") || this.stage);
     this.visibilityObserver = new IntersectionObserver(([entry]) => {
       this.visible = Boolean(entry?.isIntersecting);
     }, { threshold: 0.02 });
@@ -84,11 +85,20 @@ export class ShepardLabyrinthScene {
     const bounds = this.stage.getBoundingClientRect();
     this.width = Math.max(1, Math.round(bounds.width));
     this.height = Math.max(1, Math.round(bounds.height));
+    // Keep projection coordinates tied to the stage, but draw across the entire
+    // visible world so zooming/panning cannot expose a rectangular canvas edge.
+    const viewport = (this.stage.closest(".labyrinth-visual") || this.stage).getBoundingClientRect();
+    this.canvasLeft = viewport.left - bounds.left;
+    this.canvasTop = viewport.top - bounds.top;
+    this.canvasWidth = Math.max(1, Math.ceil(viewport.width));
+    this.canvasHeight = Math.max(1, Math.ceil(viewport.height));
     this.pixelRatio = clamp(window.devicePixelRatio || 1, 1, 2);
-    this.canvas.width = Math.round(this.width * this.pixelRatio);
-    this.canvas.height = Math.round(this.height * this.pixelRatio);
-    this.canvas.style.width = `${this.width}px`;
-    this.canvas.style.height = `${this.height}px`;
+    this.canvas.width = Math.round(this.canvasWidth * this.pixelRatio);
+    this.canvas.height = Math.round(this.canvasHeight * this.pixelRatio);
+    this.canvas.style.left = `${this.canvasLeft}px`;
+    this.canvas.style.top = `${this.canvasTop}px`;
+    this.canvas.style.width = `${this.canvasWidth}px`;
+    this.canvas.style.height = `${this.canvasHeight}px`;
     this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
   }
 
@@ -446,8 +456,9 @@ export class ShepardLabyrinthScene {
     if (!context) return;
     const camera = this.cameraAt(time);
     context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-    context.clearRect(0, 0, this.width, this.height);
+    context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
     context.save();
+    context.translate(-this.canvasLeft, -this.canvasTop);
     this.drawGround(context, camera);
     this.drawDomainPads(context, camera, time);
     this.drawWalls(context, camera);
